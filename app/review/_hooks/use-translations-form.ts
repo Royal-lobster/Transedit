@@ -109,13 +109,17 @@ export function useTranslationsForm(model: TransEditFile | null) {
 	}, [form, model, arrayToMap]);
 
 	// Live stats
+	// Use the watched `translationsValue` so stats update when the form is
+	// initialized via `form.reset()` (for example after loading a model on
+	// page refresh). Relying on `form` object reference prevented
+	// recomputation when values changed.
 	const liveStats = useMemo(() => {
 		if (!model) return { total: 0, translated: 0, percent: 0 };
-		const arr = form.getValues("translations") ?? [];
+		const arr = (translationsValue as string[]) ?? [];
 		const map = arrayToMap(arr);
 		const temp: TransEditFile = { ...model, target: map };
 		return computeStats(temp);
-	}, [form, model, arrayToMap]);
+	}, [translationsValue, model, arrayToMap]);
 
 	// Downloads
 	const onDownloadLocale = useCallback(() => {
