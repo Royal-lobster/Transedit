@@ -3,16 +3,39 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { loadProject, upsertProject } from "@/lib/db";
-import { mergeProgress, type TransEditFile, validateTransEdit } from "@/lib/helpers/transedit";
+import {
+	mergeProgress,
+	type TransEditFile,
+	validateTransEdit,
+} from "@/lib/helpers/transedit";
 
-export function useReviewLoader(opts?: { id?: string | null; data?: string | null }) {
-	const idParam = opts?.id ?? null;
+export function useReviewLoader(opts?: {
+	id?: string | null;
+	data?: string | null;
+}) {
+	// Prefer explicit `opts.id` (server-provided) but fall back to reading
+	// the `id` query param from the URL on the client. This ensures that
+	// when we normalize a `shareId` link to `?id=...` via
+	// `history.replaceState`, the hook will pick up the new `id` and the
+	// query stays enabled (avoids a state where enabled flips false and
+	// the UI gets stuck showing a skeleton).
+	const idParam =
+		opts?.id ??
+		(typeof window !== "undefined"
+			? new URLSearchParams(window.location.search).get("id")
+			: null);
+
 	const shareIdParam =
 		typeof window !== "undefined"
 			? new URLSearchParams(window.location.search).get("shareId")
 			: null;
 
-	const query = useQuery<TransEditFile, Error, TransEditFile, (string | null)[]>({
+	const query = useQuery<
+		TransEditFile,
+		Error,
+		TransEditFile,
+		(string | null)[]
+	>({
 		queryKey: ["review", idParam, shareIdParam],
 		enabled: !!idParam || !!shareIdParam,
 		queryFn: async () => {
