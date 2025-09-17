@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronRight, Dot } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
@@ -47,15 +48,22 @@ function buildTree(keys: string[]) {
 export function KeysTree({ keys, onSelect, className }: KeysTreeProps) {
 	const tree = useMemo(() => buildTree(keys), [keys]);
 	return (
-		<div className={cn("text-sm", className)}>
-			<ScrollArea className="h-[50vh]">
-				<div className="pr-2">
-					{Object.values(tree).map((n) => (
-						<TreeNode key={n.path} node={n} depth={0} onSelect={onSelect} />
-					))}
+		<Card>
+			<CardHeader className="border-b">
+				<CardTitle className="text-base">Keys</CardTitle>
+			</CardHeader>
+			<CardContent className="!p-0">
+				<div className={cn("text-sm", className)}>
+					<ScrollArea className="h-[calc(100vh-410px)]">
+						<div className="pr-2">
+							{Object.values(tree).map((n) => (
+								<TreeNode key={n.path} node={n} depth={0} onSelect={onSelect} />
+							))}
+						</div>
+					</ScrollArea>
 				</div>
-			</ScrollArea>
-		</div>
+			</CardContent>
+		</Card>
 	);
 }
 
