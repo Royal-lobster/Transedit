@@ -40,6 +40,7 @@ export function ThemeToggle() {
 							size="icon"
 							aria-label={`Set ${label} theme`}
 							onClick={() => setTheme(value)}
+							suppressHydrationWarning
 						>
 							{icon}
 						</Button>

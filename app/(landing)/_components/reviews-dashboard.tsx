@@ -7,6 +7,7 @@ import {
 	Clock,
 	Copy,
 	Languages,
+	Plus,
 	Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -70,9 +71,23 @@ export function ReviewsDashboard() {
 					Failed to load your reviews. Try again.
 				</div>
 			) : items.length === 0 ? (
-				<p className="text-sm text-muted-foreground">
-					No reviews yet. Import or create one to get started.
-				</p>
+				<Card className="border-dashed">
+					<CardContent className="flex flex-col items-center justify-center py-12 text-center">
+						<Languages className="mb-4 h-12 w-12 text-muted-foreground/50" />
+						<h4 className="mb-2 text-lg font-semibold">No reviews yet</h4>
+						<p className="mb-6 max-w-sm text-sm text-muted-foreground">
+							Get started by creating your first translation review. Upload your
+							source and target language files to begin editing.
+						</p>
+						<Button asChild>
+							<Link href="/create" className="gap-2">
+								<Plus className="h-4 w-4" />
+								Create your first review
+								<ArrowRight className="h-4 w-4" />
+							</Link>
+						</Button>
+					</CardContent>
+				</Card>
 			) : (
 				<ul className="space-y-3">
 					{items.map((p) => (
