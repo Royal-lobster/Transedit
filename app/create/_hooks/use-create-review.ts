@@ -22,6 +22,11 @@ export const createSchema = z
 		// Keep file inputs in the parsed result without strict validation
 		enFile: z.any().nullable().optional(),
 		localeFile: z.any().nullable().optional(),
+		// Allow direct paste as an alternative to file upload
+		enText: z.string().optional().default(""),
+		localeText: z.string().optional().default(""),
+		sourceMode: z.enum(["file", "paste"]).default("file"),
+		targetMode: z.enum(["file", "paste"]).default("file"),
 	})
 	.passthrough();
 
@@ -30,6 +35,10 @@ export type CreateFormValues = {
 	targetLang: string;
 	enFile: File | null;
 	localeFile: File | null;
+	enText: string;
+	localeText: string;
+	sourceMode: "file" | "paste";
+	targetMode: "file" | "paste";
 };
 
 export function useCreateReview() {
@@ -44,6 +53,10 @@ export function useCreateReview() {
 			targetLang: "",
 			enFile: null,
 			localeFile: null,
+			enText: "",
+			localeText: "",
+			sourceMode: "file",
+			targetMode: "file",
 		},
 		mode: "onChange",
 	});
@@ -63,26 +76,56 @@ export function useCreateReview() {
 		return m ? m[1] : "";
 	};
 
-	const validateJsonFiles = useCallback(
-		async (enFile: File | null, localeFile: File | null) => {
+	const validateJsonInputs = useCallback(
+		async (
+			en: { mode: "file" | "paste"; file: File | null; text: string },
+			locale: { mode: "file" | "paste"; file: File | null; text: string },
+		) => {
 			const errs: string[] = [];
-			if (!enFile) errs.push("Upload en.json (source language file).");
-			if (enFile) {
-				const text = await enFile.text();
-				try {
-					safeJsonParse(text);
-				} catch (e: unknown) {
-					const msg = e instanceof Error ? e.message : String(e);
-					errs.push(`en.json is not valid JSON: ${msg}`);
+			// Validate source
+			if (en.mode === "file") {
+				if (!en.file) errs.push("Upload en.json (source language file).");
+				if (en.file) {
+					const text = await en.file.text();
+					try {
+						safeJsonParse(text);
+					} catch (e: unknown) {
+						const msg = e instanceof Error ? e.message : String(e);
+						errs.push(`en.json is not valid JSON: ${msg}`);
+					}
+				}
+			} else {
+				if (!en.text || en.text.trim() === "")
+					errs.push("Paste source JSON (en).");
+				else {
+					try {
+						safeJsonParse(en.text);
+					} catch (e: unknown) {
+						const msg = e instanceof Error ? e.message : String(e);
+						errs.push(`Source JSON is not valid: ${msg}`);
+					}
 				}
 			}
-			if (localeFile) {
-				const text = await localeFile.text();
-				try {
-					safeJsonParse(text);
-				} catch (e: unknown) {
-					const msg = e instanceof Error ? e.message : String(e);
-					errs.push(`Target locale file is not valid JSON: ${msg}`);
+
+			// Validate optional target
+			if (locale.mode === "file") {
+				if (locale.file) {
+					const text = await locale.file.text();
+					try {
+						safeJsonParse(text);
+					} catch (e: unknown) {
+						const msg = e instanceof Error ? e.message : String(e);
+						errs.push(`Target locale file is not valid JSON: ${msg}`);
+					}
+				}
+			} else {
+				if (locale.text && locale.text.trim() !== "") {
+					try {
+						safeJsonParse(locale.text);
+					} catch (e: unknown) {
+						const msg = e instanceof Error ? e.message : String(e);
+						errs.push(`Target JSON is not valid: ${msg}`);
+					}
 				}
 			}
 			setParseErrors(errs);
@@ -98,25 +141,39 @@ export function useCreateReview() {
 		setShareUrl(null);
 
 		const { sourceLang, targetLang } = values;
+		const { sourceMode, targetMode } = values;
 		const enFile = values.enFile;
 		const localeFile = values.localeFile;
+		const enText = values.enText;
+		const localeText = values.localeText;
 
-		if (!enFile) {
-			setParseErrors(["Upload en.json (source language file)."]);
-			return;
-		}
+		// Require targetLang always
 		if (!targetLang || targetLang.trim() === "") {
 			setParseErrors(["Enter a target language code (e.g., ko, zh-CN)."]);
 			return;
 		}
 
-		const ok = await validateJsonFiles(enFile, localeFile);
+		const ok = await validateJsonInputs(
+			{ mode: sourceMode, file: enFile, text: enText },
+			{ mode: targetMode, file: localeFile, text: localeText },
+		);
 		if (!ok) return;
 
-		const enObj = await readJsonFromFile<JsonObject>(enFile);
-		const targetObj = localeFile
-			? await readJsonFromFile<JsonObject>(localeFile)
-			: null;
+		// Parse source object
+		const enObj: JsonObject =
+			sourceMode === "file"
+				? await readJsonFromFile<JsonObject>(enFile as File)
+				: safeJsonParse<JsonObject>(enText);
+
+		// Parse optional target object
+		const targetObj: JsonObject | null =
+			targetMode === "file"
+				? localeFile
+					? await readJsonFromFile<JsonObject>(localeFile)
+					: null
+				: localeText.trim() === ""
+					? null
+					: safeJsonParse<JsonObject>(localeText);
 
 		const model = generateTransEditFile({
 			enObject: enObj,
@@ -138,13 +195,17 @@ export function useCreateReview() {
 	};
 
 	// Disabled state must react to form updates; use watch so it re-renders
+	const watchedSourceMode = form.watch("sourceMode");
 	const watchedEnFile = form.watch("enFile");
+	const watchedEnText = form.watch("enText");
 	const watchedTargetLang = form.watch("targetLang");
 	const disabled = useMemo(() => {
-		return (
-			!watchedEnFile || !watchedTargetLang || watchedTargetLang.trim() === ""
-		);
-	}, [watchedEnFile, watchedTargetLang]);
+		const hasSource =
+			watchedSourceMode === "file"
+				? !!watchedEnFile
+				: Boolean(watchedEnText && watchedEnText.trim() !== "");
+		return !hasSource || !watchedTargetLang || watchedTargetLang.trim() === "";
+	}, [watchedSourceMode, watchedEnFile, watchedEnText, watchedTargetLang]);
 
 	return {
 		form,

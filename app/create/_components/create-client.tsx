@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, FileDown, Upload } from "lucide-react";
+import { ClipboardPaste, Copy, File, FileDown, Upload } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useCreateReview } from "../_hooks/use-create-review";
 
 export function CreateClient() {
@@ -28,13 +30,16 @@ export function CreateClient() {
 		disabled,
 	} = useCreateReview();
 
+	const sourceMode = form.watch("sourceMode");
+	const targetMode = form.watch("targetMode");
+
 	return (
 		<Card>
 			<CardContent className="p-6">
 				<p className="mb-6 text-sm text-muted-foreground">
-					Upload your English source file (en.json) and optionally an existing
-					target language file (e.g., ko.json). Enter the target language code
-					and generate a sharable .transedit file.
+					Upload your English source (en.json) or paste JSON directly.
+					Optionally add a target JSON (e.g., ko.json). Enter the target
+					language code to generate a sharable .transedit file.
 				</p>
 
 				<Form {...form}>
@@ -43,77 +48,201 @@ export function CreateClient() {
 						onSubmit={form.handleSubmit(onSubmit)}
 						noValidate
 					>
-						<div className="grid gap-6 sm:grid-cols-2">
-							<FormField
-								control={form.control}
-								name="enFile"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Source (en.json)</FormLabel>
-										<FormControl>
-											<Input
-												type="file"
-												accept="application/json,.json"
-												name={field.name}
-												ref={field.ref}
-												onBlur={field.onBlur}
-												onChange={(e) => {
-													const f = e.target.files?.[0] ?? null;
-													field.onChange(f);
-												}}
-												className="file:text-sm"
-											/>
-										</FormControl>
-										{form.getValues().enFile && (
-											<FormDescription className="text-xs">
-												{form.getValues().enFile?.name}
-											</FormDescription>
+						{/* Source & Target side-by-side on desktop */}
+						<div className="grid gap-6 md:grid-cols-2">
+							{/* Source section */}
+							<div className="grid gap-3">
+								<div className="flex justify-between items-center gap-2 flex-wrap">
+									<div className="text-sm font-medium">Source (en)</div>
+									<FormField
+										control={form.control}
+										name="sourceMode"
+										render={({ field }) => (
+											<ToggleGroup
+												type="single"
+												value={field.value}
+												onValueChange={(v) => v && field.onChange(v)}
+												variant="outline"
+												size="sm"
+											>
+												<ToggleGroupItem
+													value="file"
+													className="min-w-20"
+													aria-label="File"
+												>
+													<File className="size-4" /> File
+												</ToggleGroupItem>
+												<ToggleGroupItem
+													value="paste"
+													className="min-w-20"
+													aria-label="Paste"
+												>
+													<ClipboardPaste className="size-4" /> Paste
+												</ToggleGroupItem>
+											</ToggleGroup>
 										)}
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+									/>
+								</div>
 
-							<FormField
-								control={form.control}
-								name="localeFile"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Optional target (e.g., ko.json)</FormLabel>
-										<FormControl>
-											<Input
-												type="file"
-												accept="application/json,.json"
-												name={field.name}
-												ref={field.ref}
-												onBlur={field.onBlur}
-												onChange={(e) => {
-													const f = e.target.files?.[0] ?? null;
-													field.onChange(f);
-													if (f && !form.getValues().targetLang) {
-														const inferred = inferLangFromFilename(f);
-														if (inferred)
-															form.setValue("targetLang", inferred, {
-																shouldDirty: true,
-																shouldValidate: true,
-															});
-													}
-												}}
-												className="file:text-sm"
-											/>
-										</FormControl>
-										{form.getValues().localeFile && (
-											<FormDescription className="text-xs">
-												{form.getValues().localeFile?.name}
-											</FormDescription>
+								<div className="grid gap-6 sm:grid-cols-2">
+									{sourceMode === "file" ? (
+										<FormField
+											control={form.control}
+											name="enFile"
+											render={({ field }) => (
+												<FormItem className="sm:col-span-2">
+													<FormLabel>Upload en.json</FormLabel>
+													<FormControl>
+														<Input
+															type="file"
+															accept="application/json,.json"
+															name={field.name}
+															ref={field.ref}
+															onBlur={field.onBlur}
+															onChange={(e) => {
+																const f =
+																	(e.target as HTMLInputElement).files?.[0] ??
+																	null;
+																field.onChange(f);
+															}}
+															className="file:text-sm"
+														/>
+													</FormControl>
+													{form.getValues().enFile && (
+														<FormDescription className="text-xs">
+															{form.getValues().enFile?.name}
+														</FormDescription>
+													)}
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									) : (
+										<FormField
+											control={form.control}
+											name="enText"
+											render={({ field }) => (
+												<FormItem className="sm:col-span-2">
+													<FormLabel>Paste source JSON</FormLabel>
+													<FormControl>
+														<Textarea
+															placeholder={'{\n  "greeting": "Hello"\n}'}
+															rows={3}
+															className="font-mono text-sm"
+															{...field}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									)}
+								</div>
+							</div>
+
+							{/* Target section */}
+							<div className="grid gap-3">
+								<div className="flex justify-between items-center gap-2 flex-wrap">
+									<div className="text-sm font-medium">Optional target</div>
+									<FormField
+										control={form.control}
+										name="targetMode"
+										render={({ field }) => (
+											<ToggleGroup
+												type="single"
+												value={field.value}
+												onValueChange={(v) => v && field.onChange(v)}
+												variant="outline"
+												size="sm"
+											>
+												<ToggleGroupItem
+													value="file"
+													className="min-w-20"
+													aria-label="File"
+												>
+													<File className="size-4" /> File
+												</ToggleGroupItem>
+												<ToggleGroupItem
+													value="paste"
+													className="min-w-20"
+													aria-label="Paste"
+												>
+													<ClipboardPaste className="size-4" /> Paste
+												</ToggleGroupItem>
+											</ToggleGroup>
 										)}
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+									/>
+								</div>
+
+								<div className="grid gap-6 sm:grid-cols-2">
+									{targetMode === "file" ? (
+										<FormField
+											control={form.control}
+											name="localeFile"
+											render={({ field }) => (
+												<FormItem className="sm:col-span-2">
+													<FormLabel>Upload target (e.g., ko.json)</FormLabel>
+													<FormControl>
+														<Input
+															type="file"
+															accept="application/json,.json"
+															name={field.name}
+															ref={field.ref}
+															onBlur={field.onBlur}
+															onChange={(e) => {
+																const f =
+																	(e.target as HTMLInputElement).files?.[0] ??
+																	null;
+																field.onChange(f);
+																if (f && !form.getValues().targetLang) {
+																	const inferred = inferLangFromFilename(f);
+																	if (inferred)
+																		form.setValue("targetLang", inferred, {
+																			shouldDirty: true,
+																			shouldValidate: true,
+																		});
+																}
+															}}
+															className="file:text-sm"
+														/>
+													</FormControl>
+													{form.getValues().localeFile && (
+														<FormDescription className="text-xs">
+															{form.getValues().localeFile?.name}
+														</FormDescription>
+													)}
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									) : (
+										<FormField
+											control={form.control}
+											name="localeText"
+											render={({ field }) => (
+												<FormItem className="sm:col-span-2">
+													<FormLabel>Paste target JSON (optional)</FormLabel>
+													<FormControl>
+														<Textarea
+															placeholder={'{\n  "greeting": "안녕하세요"\n}'}
+															rows={3}
+															className="font-mono text-sm"
+															{...field}
+														/>
+													</FormControl>
+													<FormDescription className="text-xs">
+														Leave empty to start from scratch.
+													</FormDescription>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									)}
+								</div>
+							</div>
 						</div>
 
-						<div className="grid gap-4 sm:grid-cols-3">
+						<div className="grid gap-4 sm:grid-cols-2">
 							<FormField
 								control={form.control}
 								name="sourceLang"
@@ -132,19 +261,20 @@ export function CreateClient() {
 								control={form.control}
 								name="targetLang"
 								render={({ field }) => (
-									<FormItem className="sm:col-span-2">
+									<FormItem>
 										<FormLabel>Target language</FormLabel>
 										<FormControl>
 											<Input placeholder="ko or zh-CN" {...field} />
 										</FormControl>
-										<FormDescription className="text-xs">
-											If empty, we try to infer from filename (e.g., ko.json).
-										</FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}
 							/>
 						</div>
+						<p className="text-xs text-muted-foreground">
+							Tip: If target language is empty, we try to infer it from the
+							target filename (e.g., ko.json).
+						</p>
 
 						{parseErrors.length > 0 && (
 							<div className="rounded-lg border bg-destructive/10 border-destructive/30 p-4 text-sm text-destructive">
@@ -205,6 +335,7 @@ export function CreateClient() {
 								</p>
 							</div>
 						)}
+
 						<div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
 							<Button
 								type="submit"
