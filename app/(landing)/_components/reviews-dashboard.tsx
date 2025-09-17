@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	ArrowRight,
 	Check,
@@ -9,7 +10,7 @@ import {
 	Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,34 +19,28 @@ import { deleteProject, listProjects, type ProjectRow } from "@/lib/db";
 import { range } from "@/lib/helpers/range";
 
 export function ReviewsDashboard() {
-	const [items, setItems] = useState<ProjectRow[]>([]);
-	const [loading, setLoading] = useState(true);
-
-	const refresh = useCallback(async () => {
-		setLoading(true);
-		const all = await listProjects();
-		setItems(all);
-		setLoading(false);
-	}, []);
-
-	useEffect(() => {
-		void refresh();
-	}, [refresh]);
+	const qc = useQueryClient();
+	const { data, isLoading, isError, refetch } = useQuery({
+		queryKey: ["projects"],
+		queryFn: listProjects,
+	});
 
 	const onDelete = async (id: string) => {
-		// Lightweight confirm to prevent accidental deletes
 		const ok = window.confirm("Delete this review? This cannot be undone.");
 		if (!ok) return;
 		await deleteProject(id);
-		await refresh();
+		await qc.invalidateQueries({ queryKey: ["projects"] });
+		await refetch();
 	};
+
+	const items = (data ?? []) as ProjectRow[];
 
 	return (
 		<div>
 			<h3 className="mb-3 text-base font-semibold tracking-tight">
 				Your reviews
 			</h3>
-			{loading ? (
+			{isLoading ? (
 				<ul className="space-y-3">
 					{range(3).map((n) => (
 						<li key={`skeleton-${n}`}>
@@ -70,6 +65,10 @@ export function ReviewsDashboard() {
 						</li>
 					))}
 				</ul>
+			) : isError ? (
+				<div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+					Failed to load your reviews. Try again.
+				</div>
 			) : items.length === 0 ? (
 				<p className="text-sm text-muted-foreground">
 					No reviews yet. Import or create one to get started.
@@ -141,7 +140,7 @@ function ReviewItem({ item, onDelete }: ReviewItemProps) {
 						</div>
 						<div className="flex items-center gap-2 self-end sm:self-auto">
 							<Button asChild size="sm" variant="outline" className="gap-1">
-								<Link href={`/review#${encodeURIComponent(item.id)}`}>
+								<Link href={`/review?id=${encodeURIComponent(item.id)}`}>
 									Open
 									<ArrowRight className="ml-1 h-4 w-4" />
 								</Link>

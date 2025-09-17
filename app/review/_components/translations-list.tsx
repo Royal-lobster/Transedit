@@ -67,7 +67,9 @@ function TranslationCard({
 		>
 			<CardHeader className="pb-3">
 				<CardTitle className="flex items-center justify-between text-sm font-medium">
-					<span className="truncate pr-2">{translationKey}</span>
+					<span className="break-words max-w-[60vw] pr-2">
+						{translationKey}
+					</span>
 					<Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
 						<Globe className="w-3 h-3 mr-1" />
 						Key

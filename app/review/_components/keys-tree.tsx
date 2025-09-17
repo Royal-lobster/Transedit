@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 
 export type KeysTreeProps = {
 	keys: string[];
-	onSelect?: (key: string) => void;
 	className?: string;
 };
 
@@ -45,8 +44,35 @@ function buildTree(keys: string[]) {
 	return root.children;
 }
 
-export function KeysTree({ keys, onSelect, className }: KeysTreeProps) {
+export function KeysTree({ keys, className }: KeysTreeProps) {
 	const tree = useMemo(() => buildTree(keys), [keys]);
+
+	// Default scrolling behavior if no onSelect is provided
+	function scrollToKey(key: string) {
+		const idx = keys.indexOf(key);
+		if (idx < 0) return;
+		const el = document.getElementById(`tr-${idx}`);
+		if (!el) return;
+		const viewport = el.closest(
+			'[data-slot="scroll-area-viewport"]',
+		) as HTMLElement | null;
+		if (viewport) {
+			const targetTop = el.getBoundingClientRect().top;
+			const vpTop = viewport.getBoundingClientRect().top;
+			const offset = targetTop - vpTop + viewport.scrollTop - 8;
+			viewport.scrollTo({ top: offset, behavior: "smooth" });
+			return;
+		}
+		const appHeader = document.querySelector(
+			"header.sticky",
+		) as HTMLElement | null;
+		const topBar = document.getElementById("review-topbar");
+		const stickyOffset =
+			(appHeader?.offsetHeight ?? 0) + (topBar?.offsetHeight ?? 0) + 8;
+		const y = el.getBoundingClientRect().top + window.scrollY - stickyOffset;
+		window.scrollTo({ top: y, behavior: "smooth" });
+	}
+
 	return (
 		<Card className="pb-0 gap-0">
 			<CardHeader className="border-b">
@@ -56,7 +82,12 @@ export function KeysTree({ keys, onSelect, className }: KeysTreeProps) {
 				<div className={cn("text-sm leading-tight", className)}>
 					<ScrollArea className="h-[300px] p-2 sm:h-[400px] lg:h-[calc(100vh-424px)]">
 						{Object.values(tree).map((n) => (
-							<TreeNode key={n.path} node={n} depth={0} onSelect={onSelect} />
+							<TreeNode
+								key={n.path}
+								node={n}
+								depth={0}
+								onSelect={scrollToKey}
+							/>
 						))}
 					</ScrollArea>
 				</div>

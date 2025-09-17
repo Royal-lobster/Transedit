@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit3, FileDown } from "lucide-react";
+import { Edit3, FileDown, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -25,9 +25,11 @@ import { ReviewsDashboard } from "./_components/reviews-dashboard";
 export default function Home() {
 	const [open, setOpen] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [importing, setImporting] = useState(false);
 
 	const handlePick = async (file: File) => {
 		setError(null);
+		setImporting(true);
 		try {
 			const model = await parseTransEditUpload(file);
 			const url = buildShareUrl(model);
@@ -35,6 +37,8 @@ export default function Home() {
 		} catch (e) {
 			const msg = e instanceof Error ? e.message : String(e);
 			setError(msg);
+		} finally {
+			setImporting(false);
 		}
 	};
 
@@ -111,6 +115,12 @@ export default function Home() {
 									{error && (
 										<div className="mt-3 rounded-md border bg-destructive/10 border-destructive/30 p-3 text-sm text-destructive">
 											{error}
+										</div>
+									)}
+									{importing && (
+										<div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+											<Loader2 className="h-4 w-4 animate-spin" />
+											<span>Parsing file…</span>
 										</div>
 									)}
 								</div>

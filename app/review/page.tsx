@@ -1,15 +1,19 @@
 "use client";
 
-import { createContext, useCallback, useContext } from "react";
+import { useSearchParams } from "next/navigation";
+import { createContext, useContext, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { ActionsBar } from "./_components/actions-bar";
 import { KeysTree } from "./_components/keys-tree";
 import { ReviewMetaBar } from "./_components/review-meta-bar";
+import { ReviewSkeleton } from "./_components/review-skeleton";
 import { SearchBar } from "./_components/search-bar";
 import { TranslationsList } from "./_components/translations-list";
 import { useReview } from "./_hooks/use-review";
+
+// Skeleton moved to its own component and uses range() for stable keys
 
 interface ReviewContextType {
 	form: ReturnType<typeof useReview>["form"];
@@ -31,47 +35,39 @@ function useReviewContext() {
 }
 
 export default function ReviewPage() {
-	const reviewData = useReview();
-	const scrollToKey = useCallback(
-		(key: string) => {
-			const idx = reviewData.keys.indexOf(key);
-			if (idx < 0) return;
-			const el = document.getElementById(`tr-${idx}`);
-			if (!el) return;
-			const viewport = el.closest(
-				'[data-slot="scroll-area-viewport"]',
-			) as HTMLElement | null;
-			if (viewport) {
-				const targetTop = el.getBoundingClientRect().top;
-				const vpTop = viewport.getBoundingClientRect().top;
-				const offset = targetTop - vpTop + viewport.scrollTop - 8;
-				viewport.scrollTo({ top: offset, behavior: "smooth" });
-				return;
-			}
-			const appHeader = document.querySelector(
-				"header.sticky",
-			) as HTMLElement | null;
-			const topBar = document.getElementById("review-topbar");
-			const stickyOffset =
-				(appHeader?.offsetHeight ?? 0) + (topBar?.offsetHeight ?? 0) + 8;
-			const y = el.getBoundingClientRect().top + window.scrollY - stickyOffset;
-			window.scrollTo({ top: y, behavior: "smooth" });
-		},
-		[reviewData.keys],
-	);
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => setMounted(true), []);
+	const searchParams = useSearchParams();
+	const idParam = searchParams?.get("id") ?? null;
+	const dataParam = searchParams?.get("data") ?? null;
+	const hasParams = !!idParam || !!dataParam;
+	const reviewData = useReview({ id: idParam, data: dataParam });
 
 	return (
 		<div className="w-full">
 			<Form {...reviewData.form}>
 				<ReviewContext.Provider value={reviewData}>
-					{!reviewData.model ? (
-						<div className="rounded-xl border p-6 text-sm text-muted-foreground">
-							No review loaded. Open from the landing page.
-						</div>
+					{!mounted || reviewData.isLoading ? (
+						<ReviewSkeleton />
+					) : reviewData.isError ? (
+						<NoReviewState
+							title="Couldn’t open review"
+							description={
+								(reviewData.error as Error | undefined)?.message ||
+								"Try opening it again from the landing page or your saved list."
+							}
+						/>
+					) : !hasParams ? (
+						<NoReviewState
+							title="No review loaded"
+							description="Open a .transedit file from the landing page or choose one from Your reviews."
+						/>
+					) : !reviewData.model ? (
+						<ReviewSkeleton />
 					) : (
 						<div className="space-y-6">
 							<ReviewTopBar />
-							<ReviewContent onSelect={scrollToKey} />
+							<ReviewContent />
 						</div>
 					)}
 				</ReviewContext.Provider>
@@ -101,7 +97,26 @@ function ReviewTopBar() {
 	);
 }
 
-function ReviewContent({ onSelect }: { onSelect: (key: string) => void }) {
+// Review skeleton extracted to ./_components/review-skeleton
+
+function NoReviewState({
+	title,
+	description,
+}: {
+	title: string;
+	description: string;
+}) {
+	return (
+		<div className="rounded-xl border p-6">
+			<div className="space-y-1">
+				<div className="text-sm font-medium">{title}</div>
+				<div className="text-sm text-muted-foreground">{description}</div>
+			</div>
+		</div>
+	);
+}
+
+function ReviewContent() {
 	const { keys, filteredIndices, form, model, liveStats } = useReviewContext();
 
 	if (!model) return null;
@@ -147,7 +162,7 @@ function ReviewContent({ onSelect }: { onSelect: (key: string) => void }) {
 					translated={liveStats.translated}
 					total={liveStats.total}
 				/>
-				<KeysTree keys={keys} onSelect={onSelect} />
+				<KeysTree keys={keys} />
 			</div>
 		</div>
 	);

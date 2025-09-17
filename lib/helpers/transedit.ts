@@ -335,9 +335,9 @@ function b64urlDecodeUtf8(input: string): string {
 }
 
 /**
- * Returns hash segment like: data=<base64url(JSON)>
+ * Returns query segment like: data=<base64url(JSON)>
  */
-export function encodeTransEditToHash(model: TransEditFile): string {
+export function encodeTransEditToQuery(model: TransEditFile): string {
 	const json = JSON.stringify(model);
 	const data = b64urlEncodeUtf8(json);
 	return `data=${data}`;
@@ -348,10 +348,10 @@ export function encodeTransEditToHash(model: TransEditFile): string {
  * and loads the model from the hash.
  */
 export function buildShareUrl(model: TransEditFile): string {
-	if (!isBrowser()) return `#/review?unsupported`;
+	if (!isBrowser()) return `/review`; // fallback
 	const base = `${location.origin}/review`;
-	const hash = encodeTransEditToHash(model);
-	return `${base}#${hash}`;
+	const query = encodeTransEditToQuery(model);
+	return `${base}?${query}`;
 }
 
 /**
@@ -363,6 +363,25 @@ export function parseTransEditFromHash(hash: string): TransEditFile | null {
 	const params = new URLSearchParams(
 		clean.includes("=") ? clean : `data=${clean}`,
 	);
+	const data = params.get("data");
+	if (!data) return null;
+	try {
+		const json = b64urlDecodeUtf8(data);
+		const obj = JSON.parse(json);
+		validateTransEdit(obj);
+		return obj as TransEditFile;
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Parses window.location.search and returns a TransEditFile if present/valid, else null.
+ */
+export function parseTransEditFromSearch(search: string): TransEditFile | null {
+	if (!search) return null;
+	const clean = search.startsWith("?") ? search.slice(1) : search;
+	const params = new URLSearchParams(clean);
 	const data = params.get("data");
 	if (!data) return null;
 	try {
