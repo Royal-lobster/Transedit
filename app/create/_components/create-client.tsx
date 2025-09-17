@@ -1,6 +1,12 @@
 "use client";
 
-import { ClipboardPaste, Copy, File, FileDown, Upload } from "lucide-react";
+import {
+	ClipboardPaste,
+	Copy,
+	FileDown,
+	File as FileIcon,
+	Upload,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useCreateReview } from "../_hooks/use-create-review";
+import { FileInput } from "./file-input";
 
 export function CreateClient() {
 	const {
@@ -70,7 +77,7 @@ export function CreateClient() {
 													className="min-w-20"
 													aria-label="File"
 												>
-													<File className="size-4" /> File
+													<FileIcon className="size-4" /> File
 												</ToggleGroupItem>
 												<ToggleGroupItem
 													value="paste"
@@ -84,35 +91,22 @@ export function CreateClient() {
 									/>
 								</div>
 
-								<div className="grid gap-6 sm:grid-cols-2">
+								<div className="grid gap-6">
 									{sourceMode === "file" ? (
 										<FormField
 											control={form.control}
 											name="enFile"
 											render={({ field }) => (
-												<FormItem className="sm:col-span-2">
+												<FormItem>
 													<FormLabel>Upload en.json</FormLabel>
 													<FormControl>
-														<Input
-															type="file"
+														<FileInput
+															value={field.value}
+															onChange={field.onChange}
 															accept="application/json,.json"
-															name={field.name}
-															ref={field.ref}
-															onBlur={field.onBlur}
-															onChange={(e) => {
-																const f =
-																	(e.target as HTMLInputElement).files?.[0] ??
-																	null;
-																field.onChange(f);
-															}}
-															className="file:text-sm"
+															placeholder="JSON files only (up to 10MB)"
 														/>
 													</FormControl>
-													{form.getValues().enFile && (
-														<FormDescription className="text-xs">
-															{form.getValues().enFile?.name}
-														</FormDescription>
-													)}
 													<FormMessage />
 												</FormItem>
 											)}
@@ -127,7 +121,7 @@ export function CreateClient() {
 													<FormControl>
 														<Textarea
 															placeholder={'{\n  "greeting": "Hello"\n}'}
-															rows={3}
+															rows={6}
 															className="font-mono text-sm"
 															{...field}
 														/>
@@ -160,7 +154,7 @@ export function CreateClient() {
 													className="min-w-20"
 													aria-label="File"
 												>
-													<File className="size-4" /> File
+													<FileIcon className="size-4" /> File
 												</ToggleGroupItem>
 												<ToggleGroupItem
 													value="paste"
@@ -174,28 +168,23 @@ export function CreateClient() {
 									/>
 								</div>
 
-								<div className="grid gap-6 sm:grid-cols-2">
+								<div className="grid gap-6">
 									{targetMode === "file" ? (
 										<FormField
 											control={form.control}
 											name="localeFile"
 											render={({ field }) => (
-												<FormItem className="sm:col-span-2">
+												<FormItem>
 													<FormLabel>Upload target (e.g., ko.json)</FormLabel>
 													<FormControl>
-														<Input
-															type="file"
+														<FileInput
+															value={field.value}
+															onChange={field.onChange}
 															accept="application/json,.json"
-															name={field.name}
-															ref={field.ref}
-															onBlur={field.onBlur}
-															onChange={(e) => {
-																const f =
-																	(e.target as HTMLInputElement).files?.[0] ??
-																	null;
-																field.onChange(f);
-																if (f && !form.getValues().targetLang) {
-																	const inferred = inferLangFromFilename(f);
+															placeholder="JSON files only (up to 10MB)"
+															onLanguageInfer={(file) => {
+																if (!form.getValues().targetLang) {
+																	const inferred = inferLangFromFilename(file);
 																	if (inferred)
 																		form.setValue("targetLang", inferred, {
 																			shouldDirty: true,
@@ -203,14 +192,8 @@ export function CreateClient() {
 																		});
 																}
 															}}
-															className="file:text-sm"
 														/>
 													</FormControl>
-													{form.getValues().localeFile && (
-														<FormDescription className="text-xs">
-															{form.getValues().localeFile?.name}
-														</FormDescription>
-													)}
 													<FormMessage />
 												</FormItem>
 											)}
@@ -225,7 +208,7 @@ export function CreateClient() {
 													<FormControl>
 														<Textarea
 															placeholder={'{\n  "greeting": "안녕하세요"\n}'}
-															rows={3}
+															rows={6}
 															className="font-mono text-sm"
 															{...field}
 														/>
