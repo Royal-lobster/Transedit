@@ -141,7 +141,7 @@ export function useCreateReview() {
 		});
 
 		const json = toTransEditJson(model);
-		const fileName = `${model.meta.sourceLang}-${model.meta.targetLang}.transedit`;
+		const fileName = `${model.meta.title}-${model.meta.sourceLang}-${model.meta.targetLang}.transedit`;
 		downloadFile(fileName, json, "application/json");
 		// No auto share link here; user can click "Create Share Link" to upload
 		setShareUrl(null);
