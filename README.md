@@ -1,10 +1,11 @@
-# TransEdit
+
+# ✨ TransEdit - Web app to help review locale translations
 
 ![Next.js](https://img.shields.io/badge/Next.js-15.5.3-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 TransEdit is a local-first Next.js application for reviewing and editing translation (locale) JSON files. It's designed for translators and developers who want a portable, browser-based workflow with offline persistence and easy sharing.
 
-## Features
+## ✨ Features
 
 - Upload source and target locale JSON files to generate a `.transedit` review bundle
 - Interactive review dashboard with autosave, undo/redo and snapshots
@@ -13,7 +14,8 @@ TransEdit is a local-first Next.js application for reviewing and editing transla
 - Share reviews by uploading the `.transedit` file to Catbox and generating a short share link (`/review?shareId=...`)
 - IndexedDB (Dexie) for local persistence — no server or external database required for the main workflow
 
-## Tech stack
+
+## 🧰 Tech stack
 
 - Next.js (App Router)
 - TypeScript
@@ -23,7 +25,8 @@ TransEdit is a local-first Next.js application for reviewing and editing transla
 - TanStack Query
 - Sonner (toasts)
 
-## Quick start
+
+## 🚀 Quick start
 
 Prerequisites: Node.js 18+ and pnpm
 
@@ -43,7 +46,8 @@ pnpm dev
 
 Visit http://localhost:3000. Use the Create page to import source/target JSON files or the Review page to open a `.transedit` file.
 
-## Sharing behavior
+
+## 🔗 Sharing behavior
 
 There are two ways to share a `.transedit` review with another reviewer:
 
@@ -60,11 +64,12 @@ Considerations:
 - Direct download = private, no external hosting, manual distribution.
 - Catbox share link = convenient and quick, but temporary and hosted by a third party (review Catbox's retention/privacy if that matters).
 
-## Notes
+
+## 📝 Notes
 
 - This repository is primarily for personal use and experimentation. The README focuses on the essentials.
 - If you plan to run this publicly, review the Catbox usage and consider an alternative hosting solution for persistence and privacy.
 
-## License
+## 📄 License
 
 MIT
