@@ -35,7 +35,7 @@ export function CreateClient() {
 
 	return (
 		<Card>
-			<CardContent className="p-6">
+			<CardContent className="p-6 max-w-2xl mx-auto">
 				<p className="mb-6 text-sm text-muted-foreground">
 					Upload your English source (en.json) or paste JSON directly.
 					Optionally add a target JSON (e.g., ko.json). Enter the target
@@ -48,8 +48,8 @@ export function CreateClient() {
 						onSubmit={form.handleSubmit(onSubmit)}
 						noValidate
 					>
-						{/* Source & Target side-by-side on desktop */}
-						<div className="grid gap-6 md:grid-cols-2">
+						{/* Source & Target in single column */}
+						<div className="grid gap-6">
 							{/* Source section */}
 							<div className="grid gap-3">
 								<div className="flex justify-between items-center gap-2 flex-wrap">
