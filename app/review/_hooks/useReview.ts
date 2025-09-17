@@ -19,11 +19,12 @@ export type ReviewFormValues = {
 	translations: string[];
 	search: string;
 	transFile: File | null;
+	note?: string;
 };
 
 export function useReview() {
 	const form = useForm<ReviewFormValues>({
-		defaultValues: { translations: [], search: "", transFile: null },
+		defaultValues: { translations: [], search: "", transFile: null, note: "" },
 		mode: "onChange",
 	});
 
@@ -76,6 +77,7 @@ export function useReview() {
 					translations: initialTranslations,
 					search: "",
 					transFile: file,
+					note: "",
 				});
 
 				// Upsert immediately so it appears on dashboard even before edits
@@ -117,6 +119,7 @@ export function useReview() {
 						translations: initialTranslations,
 						search: "",
 						transFile: null,
+						note: "",
 					});
 
 					// Upsert immediately so it appears on dashboard
@@ -150,6 +153,7 @@ export function useReview() {
 							translations: initialTranslations,
 							search: "",
 							transFile: null,
+							note: "",
 						});
 					}
 				}
