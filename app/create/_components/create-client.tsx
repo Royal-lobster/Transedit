@@ -46,7 +46,7 @@ export function CreateClient() {
 				<p className="mb-6 text-sm text-muted-foreground">
 					Upload your English source (en.json) or paste JSON directly.
 					Optionally add a target JSON (e.g., ko.json). Enter the target
-					language code to generate a sharable .transedit file.
+					language code and a title to generate a sharable .transedit file.
 				</p>
 
 				<Form {...form}>
@@ -55,6 +55,21 @@ export function CreateClient() {
 						onSubmit={form.handleSubmit(onSubmit)}
 						noValidate
 					>
+						{/* Title */}
+						<FormField
+							control={form.control}
+							name="title"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Title</FormLabel>
+									<FormControl>
+										<Input placeholder="e.g., Marketing Site – Korean" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
 						{/* Source & Target in single column */}
 						<div className="grid gap-6">
 							{/* Source section */}

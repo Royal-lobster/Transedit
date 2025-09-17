@@ -48,6 +48,9 @@ export function ReviewsDashboard() {
 							>
 								<div className="min-w-0 flex-1">
 									<div className="text-sm font-medium truncate">
+										{p.meta.title}
+									</div>
+									<div className="text-xs text-muted-foreground">
 										{p.meta.sourceLang} → {p.meta.targetLang}
 									</div>
 									<div className="text-xs text-muted-foreground truncate">

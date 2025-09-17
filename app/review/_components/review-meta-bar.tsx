@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 export function ReviewMetaBar({
 	sourceLang,
 	targetLang,
+	title,
 	projectId,
 	percent,
 	translated,
@@ -13,16 +14,23 @@ export function ReviewMetaBar({
 }: {
 	sourceLang: string;
 	targetLang: string;
+	title?: string;
 	projectId: string;
 	percent: number;
 	translated: number;
 	total: number;
 }) {
+	const displayTitle = (title && title.trim() !== "")
+		? title
+		: `${sourceLang} → ${targetLang}`;
 	return (
 		<Card>
 			<CardContent className="p-4">
 				<div className="flex flex-col gap-3">
 					<div>
+						<p className="text-sm font-medium truncate" title={displayTitle}>
+							{displayTitle}
+						</p>
 						<p className="text-sm text-muted-foreground">
 							Source:{" "}
 							<span className="text-foreground font-medium">{sourceLang}</span>{" "}

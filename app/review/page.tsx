@@ -159,6 +159,7 @@ function ReviewContent({ onSelect }: { onSelect: (key: string) => void }) {
 				<ReviewMetaBar
 					sourceLang={model.meta.sourceLang}
 					targetLang={model.meta.targetLang}
+					title={model.meta.title}
 					projectId={model.id}
 					percent={liveStats.percent}
 					translated={liveStats.translated}

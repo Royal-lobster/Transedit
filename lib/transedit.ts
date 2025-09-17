@@ -8,6 +8,7 @@ export interface TransEditMeta {
 	sourceLang: string; // e.g., "en"
 	targetLang: string; // e.g., "ko"
 	createdAt: string; // ISO
+	title: string; // human-friendly title
 }
 
 export interface TransEditFile {
@@ -89,7 +90,10 @@ export function unflatten(flat: FlatMap): Record<string, unknown> {
 		path: string[],
 		value: string,
 	) => {
-		let curr: any = obj;
+		let curr: Record<string, unknown> | unknown[] = obj as Record<
+			string,
+			unknown
+		>;
 		for (let i = 0; i < path.length; i++) {
 			const part = path[i];
 			const isLast = i === path.length - 1;
@@ -99,20 +103,24 @@ export function unflatten(flat: FlatMap): Record<string, unknown> {
 			const nextIsIndex = nextPart != null && /^\d+$/.test(nextPart);
 
 			if (isLast) {
-				curr[part] = value;
+				(curr as Record<string, unknown>)[part] = value;
 			} else {
-				if (!(part in curr)) {
-					curr[part] = nextIsIndex ? [] : {};
+				if (!Object.hasOwn(curr as object, part)) {
+					(curr as Record<string, unknown>)[part] = nextIsIndex ? [] : {};
 				} else {
 					// If type mismatch, coerce to object/array as needed
-					if (nextIsIndex && !Array.isArray(curr[part])) curr[part] = [];
+					const existing = (curr as Record<string, unknown>)[part];
+					if (nextIsIndex && !Array.isArray(existing))
+						(curr as Record<string, unknown>)[part] = [];
 					if (
 						!nextIsIndex &&
-						(Array.isArray(curr[part]) || typeof curr[part] !== "object")
+						(Array.isArray(existing) || typeof existing !== "object")
 					)
-						curr[part] = {};
+						(curr as Record<string, unknown>)[part] = {};
 				}
-				curr = curr[part];
+				curr = (curr as Record<string, unknown>)[part] as
+					| Record<string, unknown>
+					| unknown[];
 			}
 		}
 	};
@@ -193,6 +201,7 @@ export function generateTransEditFile(opts: {
 	sourceLang?: string; // default "en"
 	targetLang: string; // required
 	id?: string; // optional to reuse existing
+	title: string; // required
 }): TransEditFile {
 	const en = flatten(opts.enObject ?? {});
 	const target = flatten(opts.targetObject ?? {});
@@ -209,6 +218,7 @@ export function generateTransEditFile(opts: {
 			sourceLang: (opts.sourceLang ?? "en") as "en",
 			targetLang: opts.targetLang,
 			createdAt: nowIso(),
+			title: opts.title,
 		},
 		en,
 		target: aligned,
@@ -222,22 +232,28 @@ export async function parseTransEditUpload(file: File): Promise<TransEditFile> {
 	return data;
 }
 
-export function validateTransEdit(data: any): asserts data is TransEditFile {
+export function validateTransEdit(
+	data: unknown,
+): asserts data is TransEditFile {
 	if (!data || typeof data !== "object")
 		throw new Error("Invalid .transedit: not an object");
-	if (!data.id || typeof data.id !== "string")
+	const d = data as Record<string, unknown>;
+	if (!d.id || typeof d.id !== "string")
 		throw new Error("Invalid .transedit: missing id");
-	if (!data.meta || typeof data.meta !== "object")
+	if (!d.meta || typeof d.meta !== "object")
 		throw new Error("Invalid .transedit: missing meta");
-	if (data.meta.app !== "transedit")
+	const m = d.meta as Record<string, unknown>;
+	if (m.app !== "transedit")
 		throw new Error("Invalid .transedit: meta.app must be 'transedit'");
-	if (data.meta.version !== 1)
+	if (m.version !== 1)
 		throw new Error("Invalid .transedit: unsupported version");
-	if (!data.meta.sourceLang || !data.meta.targetLang)
+	if (!m.sourceLang || !m.targetLang)
 		throw new Error("Invalid .transedit: missing languages");
-	if (!data.en || typeof data.en !== "object")
+	if (!m.title || typeof m.title !== "string" || m.title.trim() === "")
+		throw new Error("Invalid .transedit: missing title");
+	if (!d.en || typeof d.en !== "object")
 		throw new Error("Invalid .transedit: missing en");
-	if (!data.target || typeof data.target !== "object")
+	if (!d.target || typeof d.target !== "object")
 		throw new Error("Invalid .transedit: missing target");
 }
 
@@ -281,13 +297,14 @@ export function toTransEditJson(model: TransEditFile): string {
 }
 
 // Simple debounce for autosave
-export function debounce<T extends (...args: any[]) => void>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function debounce<T extends (...args: any[]) => unknown>(
 	fn: T,
 	delay = 500,
 ) {
-	let t: any;
+	let t: ReturnType<typeof setTimeout> | undefined;
 	return (...args: Parameters<T>) => {
-		clearTimeout(t);
+		if (t) clearTimeout(t);
 		t = setTimeout(() => fn(...args), delay);
 	};
 }

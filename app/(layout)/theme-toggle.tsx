@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,28 +9,44 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+const themes = [
+	{
+		value: "light",
+		label: "Light",
+		icon: <Sun className="h-4 w-4" />,
+	},
+	{
+		value: "system",
+		label: "System",
+		icon: <Monitor className="h-4 w-4" />,
+	},
+	{
+		value: "dark",
+		label: "Dark",
+		icon: <Moon className="h-4 w-4" />,
+	},
+];
+
 export function ThemeToggle() {
 	const { theme, setTheme } = useTheme();
 
-	const toggle = () => setTheme(theme === "dark" ? "light" : "dark");
-
 	return (
-		<Tooltip>
-			<TooltipTrigger asChild>
-				<Button
-					variant="ghost"
-					size="icon"
-					aria-label="Toggle theme"
-					onClick={toggle}
-				>
-					{theme === "dark" ? (
-						<Sun className="h-4 w-4" />
-					) : (
-						<Moon className="h-4 w-4" />
-					)}
-				</Button>
-			</TooltipTrigger>
-			<TooltipContent>Toggle theme</TooltipContent>
-		</Tooltip>
+		<div className="flex gap-2">
+			{themes.map(({ value, label, icon }) => (
+				<Tooltip key={value}>
+					<TooltipTrigger asChild>
+						<Button
+							variant={theme === value ? "secondary" : "ghost"}
+							size="icon"
+							aria-label={`Set ${label} theme`}
+							onClick={() => setTheme(value)}
+						>
+							{icon}
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>{label} theme</TooltipContent>
+				</Tooltip>
+			))}
+		</div>
 	);
 }

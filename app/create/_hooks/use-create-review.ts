@@ -17,6 +17,7 @@ type JsonObject = Record<string, unknown>;
 
 export const createSchema = z
 	.object({
+		title: z.string().trim().min(1, "Title is required"),
 		sourceLang: z.string().trim().min(1, "Source language is required"),
 		targetLang: z.string().trim().min(1, "Target language is required"),
 		// Keep file inputs in the parsed result without strict validation
@@ -31,6 +32,7 @@ export const createSchema = z
 	.passthrough();
 
 export type CreateFormValues = {
+	title: string;
 	sourceLang: string;
 	targetLang: string;
 	enFile: File | null;
@@ -49,6 +51,7 @@ export function useCreateReview() {
 	const form = useForm<CreateFormValues>({
 		resolver,
 		defaultValues: {
+			title: "",
 			sourceLang: "en",
 			targetLang: "",
 			enFile: null,
@@ -140,7 +143,7 @@ export function useCreateReview() {
 		setParseErrors([]);
 		setShareUrl(null);
 
-		const { sourceLang, targetLang } = values;
+	const { sourceLang, targetLang, title } = values;
 		const { sourceMode, targetMode } = values;
 		const enFile = values.enFile;
 		const localeFile = values.localeFile;
@@ -180,6 +183,7 @@ export function useCreateReview() {
 			targetObject: targetObj,
 			sourceLang,
 			targetLang,
+			title,
 		});
 
 		const json = toTransEditJson(model);
@@ -195,6 +199,7 @@ export function useCreateReview() {
 	};
 
 	// Disabled state must react to form updates; use watch so it re-renders
+	const watchedTitle = form.watch("title");
 	const watchedSourceMode = form.watch("sourceMode");
 	const watchedEnFile = form.watch("enFile");
 	const watchedEnText = form.watch("enText");
@@ -204,8 +209,20 @@ export function useCreateReview() {
 			watchedSourceMode === "file"
 				? !!watchedEnFile
 				: Boolean(watchedEnText && watchedEnText.trim() !== "");
-		return !hasSource || !watchedTargetLang || watchedTargetLang.trim() === "";
-	}, [watchedSourceMode, watchedEnFile, watchedEnText, watchedTargetLang]);
+		const hasTitle = Boolean(watchedTitle && watchedTitle.trim() !== "");
+		return (
+			!hasSource ||
+			!hasTitle ||
+			!watchedTargetLang ||
+			watchedTargetLang.trim() === ""
+		);
+	}, [
+		watchedSourceMode,
+		watchedEnFile,
+		watchedEnText,
+		watchedTargetLang,
+		watchedTitle,
+	]);
 
 	return {
 		form,
