@@ -61,7 +61,7 @@ function TranslationCard({
 	control,
 }: TranslationCardProps) {
 	return (
-		<Card className="shadow-sm hover:shadow-md transition-shadow">
+		<Card id={`tr-${index}`} className="shadow-sm hover:shadow-md transition-shadow">
 			<CardHeader className="pb-3">
 				<CardTitle className="flex items-center justify-between text-sm font-medium">
 					<span className="truncate pr-2">{translationKey}</span>
