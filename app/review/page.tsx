@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,14 +34,21 @@ function useReviewContext() {
 	return context;
 }
 
-export default function ReviewPage() {
+interface ReviewPageProps {
+	searchParams: {
+		id?: string;
+		shareId?: string;
+	};
+}
+
+export default function ReviewPage({
+	searchParams: { id, shareId },
+}: ReviewPageProps) {
 	const [mounted, setMounted] = useState(false);
 	useEffect(() => setMounted(true), []);
-	const searchParams = useSearchParams();
-	const idParam = searchParams?.get("id") ?? null;
-	const shareIdParam = searchParams?.get("shareId") ?? null;
-	const hasParams = !!idParam || !!shareIdParam;
-	const reviewData = useReview({ id: idParam });
+
+	const hasParams = !!id || !!shareId;
+	const reviewData = useReview({ id });
 
 	return (
 		<div className="w-full">
