@@ -31,6 +31,8 @@ export function CreateClient() {
 		parseErrors,
 		previewCounts,
 		shareUrl,
+		isSharing,
+		onCreateShareLink,
 		inferLangFromFilename,
 		onSubmit,
 		disabled,
@@ -336,14 +338,30 @@ export function CreateClient() {
 					)}
 
 					<div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-						<Button
-							type="submit"
-							disabled={disabled}
-							className="gap-2 w-full sm:w-auto"
-						>
-							<FileDown className="h-4 w-4" />
-							Generate .transedit
-						</Button>
+						<div className="flex gap-2 w-full sm:w-auto">
+							<Button
+								type="submit"
+								disabled={disabled}
+								className="gap-2 w-full sm:w-auto"
+							>
+								<FileDown className="h-4 w-4" />
+								Generate .transedit
+							</Button>
+							<Button
+								type="button"
+								variant="secondary"
+								disabled={disabled || isSharing}
+								onClick={onCreateShareLink}
+								className="gap-2 w-full sm:w-auto"
+							>
+								{isSharing ? (
+									<svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" />
+								) : (
+									<Upload className="h-4 w-4" />
+								)}
+								Create Share Link
+							</Button>
+						</div>
 
 						<Button
 							type="button"

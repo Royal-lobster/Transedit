@@ -21,6 +21,9 @@ interface ReviewContextType {
 	keys: ReturnType<typeof useReview>["keys"];
 	filteredIndices: ReturnType<typeof useReview>["filteredIndices"];
 	onDownloadLocale: ReturnType<typeof useReview>["onDownloadLocale"];
+	onDownloadTransedit: ReturnType<typeof useReview>["onDownloadTransedit"];
+	onCopyShareLink: ReturnType<typeof useReview>["onCopyShareLink"];
+	isSharing: ReturnType<typeof useReview>["isSharing"];
 	liveStats: ReturnType<typeof useReview>["liveStats"];
 }
 
@@ -39,9 +42,9 @@ export default function ReviewPage() {
 	useEffect(() => setMounted(true), []);
 	const searchParams = useSearchParams();
 	const idParam = searchParams?.get("id") ?? null;
-	const dataParam = searchParams?.get("data") ?? null;
-	const hasParams = !!idParam || !!dataParam;
-	const reviewData = useReview({ id: idParam, data: dataParam });
+	const shareIdParam = searchParams?.get("shareId") ?? null;
+	const hasParams = !!idParam || !!shareIdParam;
+	const reviewData = useReview({ id: idParam });
 
 	return (
 		<div className="w-full">
@@ -77,7 +80,14 @@ export default function ReviewPage() {
 }
 
 function ReviewTopBar() {
-	const { form, model, onDownloadLocale } = useReviewContext();
+	const {
+		form,
+		model,
+		onDownloadLocale,
+		onDownloadTransedit,
+		onCopyShareLink,
+		isSharing,
+	} = useReviewContext();
 
 	if (!model) return null;
 
@@ -91,6 +101,9 @@ function ReviewTopBar() {
 				<ActionsBar
 					targetLang={model.meta.targetLang}
 					onDownloadLocale={onDownloadLocale}
+					onDownloadTransedit={onDownloadTransedit}
+					onCopyShareLink={onCopyShareLink}
+					isSharing={isSharing}
 				/>
 			</div>
 		</div>

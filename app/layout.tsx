@@ -5,6 +5,7 @@ import { Footer } from "@/app/(layout)/footer";
 import { Navbar } from "@/app/(layout)/navbar";
 import { QueryProvider } from "@/app/(layout)/query-provider";
 import { ThemeProvider } from "@/app/(layout)/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
 							</main>
 						</div>
 						<Footer />
+						<Toaster richColors position="bottom-center" />
 					</QueryProvider>
 				</ThemeProvider>
 			</body>

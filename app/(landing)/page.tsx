@@ -19,7 +19,8 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { buildShareUrl, parseTransEditUpload } from "@/lib/helpers/transedit";
+import { parseTransEditUpload } from "@/lib/helpers/transedit";
+import { upsertProject } from "@/lib/db";
 import { ReviewsDashboard } from "./_components/reviews-dashboard";
 
 export default function Home() {
@@ -32,8 +33,16 @@ export default function Home() {
 		setImporting(true);
 		try {
 			const model = await parseTransEditUpload(file);
-			const url = buildShareUrl(model);
-			window.location.href = url;
+			// Save to Dexie so it shows up in the dashboard and can be revisited
+			await upsertProject({
+				id: model.id,
+				meta: model.meta,
+				en: model.en,
+				target: model.target,
+				updatedAt: new Date().toISOString(),
+			});
+			// Navigate to review using id flow
+			window.location.href = `/review?id=${encodeURIComponent(model.id)}`;
 		} catch (e) {
 			const msg = e instanceof Error ? e.message : String(e);
 			setError(msg);

@@ -5,7 +5,6 @@ import { useCallback, useMemo, useState } from "react";
 import { type Resolver, useForm } from "react-hook-form";
 import { z } from "zod";
 import {
-	buildShareUrl,
 	downloadFile,
 	generateTransEditFile,
 	readJsonFromFile,
@@ -71,6 +70,7 @@ export function useCreateReview() {
 		target: number;
 	} | null>(null);
 	const [shareUrl, setShareUrl] = useState<string | null>(null);
+	const [isSharing, setIsSharing] = useState<boolean>(false);
 
 	const inferLangFromFilename = (file: File | null) => {
 		if (!file) return "";
@@ -189,13 +189,89 @@ export function useCreateReview() {
 		const json = toTransEditJson(model);
 		const fileName = `${model.meta.sourceLang}-${model.meta.targetLang}.transedit`;
 		downloadFile(fileName, json, "application/json");
-		setShareUrl(buildShareUrl(model));
+		// No auto share link here; user can click "Create Share Link" to upload
+		setShareUrl(null);
 
 		setPreviewCounts({
 			en: Object.keys(model.en).length,
 			target: Object.keys(model.target).length,
 		});
 		setInfo(`.transedit generated with ${Object.keys(model.en).length} keys.`);
+	};
+
+	const onCreateShareLink = async () => {
+		setParseErrors([]);
+		setInfo(null);
+		setShareUrl(null);
+		const values = form.getValues();
+		const { sourceLang, targetLang, title, sourceMode, targetMode } = values;
+		const enFile = values.enFile;
+		const localeFile = values.localeFile;
+		const enText = values.enText;
+		const localeText = values.localeText;
+
+		if (!targetLang || targetLang.trim() === "") {
+			setParseErrors(["Enter a target language code (e.g., ko, zh-CN)."]);
+			return;
+		}
+
+		const ok = await validateJsonInputs(
+			{ mode: sourceMode, file: enFile, text: enText },
+			{ mode: targetMode, file: localeFile, text: localeText },
+		);
+		if (!ok) return;
+
+		// Build model (same as onSubmit, but no download)
+		const enObj: JsonObject =
+			sourceMode === "file"
+				? await readJsonFromFile<JsonObject>(enFile as File)
+				: safeJsonParse<JsonObject>(enText);
+
+		const targetObj: JsonObject | null =
+			targetMode === "file"
+				? localeFile
+					? await readJsonFromFile<JsonObject>(localeFile)
+					: null
+				: localeText.trim() === ""
+					? null
+					: safeJsonParse<JsonObject>(localeText);
+
+		const model = generateTransEditFile({
+			enObject: enObj,
+			targetObject: targetObj,
+			sourceLang,
+			targetLang,
+			title,
+		});
+
+		// Upload via API -> Catbox
+		setIsSharing(true);
+		try {
+			const res = await fetch("/api/share", {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: toTransEditJson(model),
+			});
+			if (!res.ok) {
+				const { error } = (await res
+					.json()
+					.catch(() => ({ error: res.statusText }))) as { error?: string };
+				throw new Error(error || `Upload failed (${res.status})`);
+			}
+			const data = (await res.json()) as { id: string; url: string };
+			const url = `${location.origin}/review?shareId=${encodeURIComponent(data.id)}`;
+			setShareUrl(url);
+			setInfo("Share link created successfully.");
+			setPreviewCounts({
+				en: Object.keys(model.en).length,
+				target: Object.keys(model.target).length,
+			});
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : String(e);
+			setParseErrors([msg]);
+		} finally {
+			setIsSharing(false);
+		}
 	};
 
 	// Disabled state must react to form updates; use watch so it re-renders
@@ -230,6 +306,8 @@ export function useCreateReview() {
 		parseErrors,
 		previewCounts,
 		shareUrl,
+		isSharing,
+		onCreateShareLink,
 		inferLangFromFilename,
 		onSubmit,
 		disabled,
