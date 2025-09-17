@@ -15,7 +15,7 @@ export function SearchBar({ control }: { control: Control<ReviewFormValues> }) {
 	return (
 		<div className="sm:w-80">
 			<div className="flex items-center gap-2">
-				<Search className="h-4 w-4 text-zinc-500" />
+				<Search className="h-4 w-4 text-muted-foreground" />
 				<FormField
 					control={control}
 					name="search"

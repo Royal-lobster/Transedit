@@ -25,9 +25,9 @@ export function SnapshotsPanel({
 	onSaveSnapshot: () => void;
 }) {
 	return (
-		<div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+		<div className="p-4">
 			<div className="mb-3 flex items-center gap-2">
-				<History className="h-4 w-4 text-zinc-400" />
+				<History className="h-4 w-4 text-muted-foreground" />
 				<h3 className="text-sm font-medium">Snapshots</h3>
 			</div>
 			<FormField
@@ -53,15 +53,12 @@ export function SnapshotsPanel({
 			</Button>
 			<div className="mt-4 max-h-[320px] overflow-auto">
 				{snapshots.length === 0 ? (
-					<p className="text-xs text-zinc-500">No snapshots yet.</p>
+					<p className="text-xs text-muted-foreground">No snapshots yet.</p>
 				) : (
 					<ul className="space-y-2">
 						{snapshots.map((s) => (
-							<li
-								key={s.id}
-								className="rounded-md border border-zinc-800/80 bg-zinc-900/60 p-2"
-							>
-								<p className="text-xs text-zinc-400">
+							<li key={s.id} className="rounded-md border p-2">
+								<p className="text-xs text-muted-foreground">
 									{new Date(s.at).toLocaleString()}{" "}
 									{s.note ? `• ${s.note}` : ""}
 								</p>

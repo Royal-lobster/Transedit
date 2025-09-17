@@ -32,8 +32,8 @@ export function TranslationsList({
 				const en = enDict[key] ?? "";
 				return (
 					<div key={key} className="rounded-md border p-4">
-						<div className="mb-2 text-sm text-zinc-500">{key}</div>
-						<div className="mb-3 text-sm text-zinc-700">EN: {en}</div>
+						<div className="mb-2 text-xs text-muted-foreground">{key}</div>
+						<div className="mb-3 text-sm text-foreground/80">EN: {en}</div>
 						<FormField
 							control={control}
 							name={`translations.${i}` as const}

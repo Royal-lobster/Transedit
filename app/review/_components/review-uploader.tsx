@@ -24,8 +24,8 @@ export function ReviewUploader({
 	onPick: (file: File) => void;
 }) {
 	return (
-		<div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur">
-			<p className="mb-4 text-sm text-zinc-300">
+		<div className="rounded-xl border p-6">
+			<p className="mb-4 text-sm text-muted-foreground">
 				Upload a .transedit file to open the review dashboard. Your edits
 				auto-save to your browser.
 			</p>
@@ -53,7 +53,7 @@ export function ReviewUploader({
 				/>
 			</div>
 			{error && (
-				<div className="mt-4 rounded-md border border-red-900/40 bg-red-950/40 p-3 text-sm text-red-300">
+				<div className="mt-4 rounded-md border bg-destructive/10 border-destructive/30 p-3 text-sm text-destructive">
 					{error}
 				</div>
 			)}

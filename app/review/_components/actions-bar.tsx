@@ -1,6 +1,13 @@
 "use client";
 
+import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type ActionsBarProps = {
 	targetLang: string | null;
@@ -23,20 +30,30 @@ export function ActionsBar({
 			<Button onClick={onDownloadLocale} disabled={!targetLang}>
 				Export {targetLang || "locale"}
 			</Button>
-			<label className="cursor-pointer">
-				<span className="sr-only">Replace .transedit file</span>
-				<input
-					type="file"
-					accept=".transedit,application/json"
-					className="hidden"
-					onChange={async (e) => {
-						const file = e.target.files?.[0];
-						if (file) await onTransFileChange(file);
-						e.currentTarget.value = "";
-					}}
-				/>
-				<Button variant="outline">Replace .transedit</Button>
-			</label>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="outline" size="icon" aria-label="More">
+						<MoreHorizontal className="h-4 w-4" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuItem asChild>
+						<label className="w-full cursor-pointer">
+							<input
+								type="file"
+								accept=".transedit,application/json"
+								className="hidden"
+								onChange={async (e) => {
+									const file = e.target.files?.[0];
+									if (file) await onTransFileChange(file);
+									e.currentTarget.value = "";
+								}}
+							/>
+							Replace .transedit
+						</label>
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 		</div>
 	);
 }
