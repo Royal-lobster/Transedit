@@ -31,7 +31,12 @@ export function TranslationsList({
 				const key = keys[i];
 				const en = enDict[key] ?? "";
 				return (
-					<div key={key} className="rounded-md border p-4">
+					<div
+						key={key}
+						id={`tr-${i}`}
+						data-key={key}
+						className="rounded-md border p-4"
+					>
 						<div className="mb-2 text-xs text-muted-foreground">{key}</div>
 						<div className="mb-3 text-sm text-foreground/80">EN: {en}</div>
 						<FormField

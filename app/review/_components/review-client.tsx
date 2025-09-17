@@ -1,9 +1,11 @@
 "use client";
+import { useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReview } from "../_hooks/use-review";
 import { ActionsBar } from "./actions-bar";
+import { KeysTree } from "./keys-tree";
 import { ReviewMetaBar } from "./review-meta-bar";
 import { ReviewUploader } from "./review-uploader";
 import { SearchBar } from "./search-bar";
@@ -21,6 +23,30 @@ export function ReviewClient() {
 		pickFileAndLoad,
 	} = useReview();
 
+	const scrollToKey = useCallback(
+		(key: string) => {
+			// find index from keys (sorted)
+			const idx = keys.indexOf(key);
+			if (idx < 0) return;
+			const el = document.getElementById(`tr-${idx}`);
+			if (!el) return;
+			// Try to find the nearest ScrollArea viewport and scroll within it
+			const viewport = el.closest(
+				'[data-slot="scroll-area-viewport"]',
+			) as HTMLElement | null;
+			if (viewport) {
+				const targetTop = el.getBoundingClientRect().top;
+				const vpTop = viewport.getBoundingClientRect().top;
+				const offset = targetTop - vpTop + viewport.scrollTop - 8;
+				viewport.scrollTo({ top: offset, behavior: "smooth" });
+				return;
+			}
+			// Fallback: browser scroll
+			el.scrollIntoView({ behavior: "smooth", block: "start" });
+		},
+		[keys],
+	);
+
 	return (
 		<Form {...form}>
 			{!model ? (
@@ -35,15 +61,6 @@ export function ReviewClient() {
 				</Card>
 			) : (
 				<div className="space-y-6">
-					<ReviewMetaBar
-						sourceLang={model.meta.sourceLang}
-						targetLang={model.meta.targetLang}
-						projectId={model.id}
-						percent={liveStats.percent}
-						translated={liveStats.translated}
-						total={liveStats.total}
-					/>
-
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 						<SearchBar control={form.control} />
 						<ActionsBar
@@ -55,30 +72,53 @@ export function ReviewClient() {
 						/>
 					</div>
 
-					<div className="grid gap-6">
+					<div className="grid gap-6 grid-cols-1 xl:grid-cols-[1fr_320px]">
 						<Card className="overflow-hidden">
 							<CardHeader className="pb-2">
 								<CardTitle className="text-base">Translations</CardTitle>
 							</CardHeader>
 							<CardContent className="p-0">
 								<ScrollArea className="h-[75vh] p-4">
-									{filteredIndices.length === 0 ? (
-										<p className="text-sm text-muted-foreground">No matches.</p>
-									) : (
-										<TranslationsList
-											keys={keys}
-											filteredIndices={filteredIndices}
-											control={form.control}
-											enDict={model.en}
-										/>
-									)}
-									<p className="mt-4 text-xs text-muted-foreground">
-										Edits auto-save locally. Undo/redo supported via your
-										browser's standard shortcuts.
-									</p>
+									<div className="h-full">
+										{filteredIndices.length === 0 ? (
+											<p className="text-sm text-muted-foreground">
+												No matches.
+											</p>
+										) : (
+											<TranslationsList
+												keys={keys}
+												filteredIndices={filteredIndices}
+												control={form.control}
+												enDict={model.en}
+											/>
+										)}
+										<p className="mt-4 text-xs text-muted-foreground">
+											Edits auto-save locally. Undo/redo supported via your
+											browser's standard shortcuts.
+										</p>
+									</div>
 								</ScrollArea>
 							</CardContent>
 						</Card>
+
+						<div className="space-y-4">
+							<ReviewMetaBar
+								sourceLang={model.meta.sourceLang}
+								targetLang={model.meta.targetLang}
+								projectId={model.id}
+								percent={liveStats.percent}
+								translated={liveStats.translated}
+								total={liveStats.total}
+							/>
+							<Card>
+								<CardHeader className="border-b">
+									<CardTitle className="text-base">Keys</CardTitle>
+								</CardHeader>
+								<CardContent className="!p-0">
+									<KeysTree keys={keys} onSelect={scrollToKey} />
+								</CardContent>
+							</Card>
+						</div>
 					</div>
 				</div>
 			)}

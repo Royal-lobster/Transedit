@@ -20,8 +20,8 @@ export function ReviewMetaBar({
 }) {
 	return (
 		<Card>
-			<CardContent className="p-5">
-				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<CardContent>
+				<div className="flex flex-col gap-3">
 					<div>
 						<p className="text-sm text-muted-foreground">
 							Source:{" "}
