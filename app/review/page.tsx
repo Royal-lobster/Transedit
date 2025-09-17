@@ -13,8 +13,6 @@ import { SearchBar } from "./_components/search-bar";
 import { TranslationsList } from "./_components/translations-list";
 import { useReview } from "./_hooks/use-review";
 
-// Skeleton moved to its own component and uses range() for stable keys
-
 interface ReviewContextType {
 	form: ReturnType<typeof useReview>["form"];
 	model: ReturnType<typeof useReview>["model"];
@@ -54,7 +52,7 @@ export default function ReviewPage() {
 						<ReviewSkeleton />
 					) : reviewData.isError ? (
 						<NoReviewState
-							title="Couldn’t open review"
+							title="Couldn&apos;t open review"
 							description={
 								(reviewData.error as Error | undefined)?.message ||
 								"Try opening it again from the landing page or your saved list."
@@ -158,8 +156,8 @@ function ReviewContent() {
 							/>
 						)}
 						<p className="mt-4 text-xs text-muted-foreground">
-							Edits auto-save locally. Undo/redo supported via your browser's
-							standard shortcuts.
+							Edits auto-save locally. Undo/redo supported via your
+							browser&apos;s standard shortcuts.
 						</p>
 					</div>
 				</CardContent>

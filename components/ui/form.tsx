@@ -80,7 +80,6 @@ const FormItem = React.forwardRef<
 });
 FormItem.displayName = "FormItem";
 
-/* biome-ignore lint/a11y/useValidFormFieldLabel: This label is programmatically associated to the control via generated id */
 const FormLabel = React.forwardRef<
 	React.ElementRef<"label">,
 	React.ComponentPropsWithoutRef<"label">
@@ -88,6 +87,7 @@ const FormLabel = React.forwardRef<
 	const { formItemId } = useFormField();
 
 	return (
+		// biome-ignore lint/a11y/noLabelWithoutControl: its fine
 		<label
 			ref={ref}
 			htmlFor={formItemId}
