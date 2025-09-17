@@ -36,8 +36,8 @@ export default function RootLayout({
 						<main className="flex-1 container py-8 px-4 mx-auto">
 							{children}
 						</main>
-						<Footer />
 					</div>
+					<Footer />
 				</ThemeProvider>
 			</body>
 		</html>

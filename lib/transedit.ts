@@ -297,15 +297,16 @@ export function toTransEditJson(model: TransEditFile): string {
 }
 
 // Simple debounce for autosave
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function debounce<T extends (...args: any[]) => unknown>(
-	fn: T,
+export function debounce<TArgs extends unknown[]>(
+	fn: (...args: TArgs) => void | Promise<void>,
 	delay = 500,
 ) {
 	let t: ReturnType<typeof setTimeout> | undefined;
-	return (...args: Parameters<T>) => {
+	return (...args: TArgs) => {
 		if (t) clearTimeout(t);
-		t = setTimeout(() => fn(...args), delay);
+		t = setTimeout(() => {
+			void fn(...args);
+		}, delay);
 	};
 }
 
