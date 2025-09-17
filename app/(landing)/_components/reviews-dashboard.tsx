@@ -1,11 +1,21 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import {
+	ArrowRight,
+	Check,
+	Clock,
+	Copy,
+	Languages,
+	Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { deleteProject, listProjects, type ProjectRow } from "@/lib/db";
+import { range } from "@/lib/helpers/range";
 
 export function ReviewsDashboard() {
 	const [items, setItems] = useState<ProjectRow[]>([]);
@@ -23,67 +33,131 @@ export function ReviewsDashboard() {
 	}, [refresh]);
 
 	const onDelete = async (id: string) => {
+		// Lightweight confirm to prevent accidental deletes
+		const ok = window.confirm("Delete this review? This cannot be undone.");
+		if (!ok) return;
 		await deleteProject(id);
 		await refresh();
 	};
 
 	return (
-		<Card>
-			<CardHeader className="border-b">
-				<CardTitle className="text-base">Your reviews</CardTitle>
-			</CardHeader>
-			<CardContent>
-				{loading ? (
-					<p className="text-sm text-muted-foreground">Loading…</p>
-				) : items.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
-						No reviews yet. Import or create one to get started.
-					</p>
-				) : (
-					<ul className="divide-y">
-						{items.map((p) => (
-							<li
-								key={p.id}
-								className="py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+		<div>
+			<h3 className="mb-3 text-base font-semibold tracking-tight">
+				Your reviews
+			</h3>
+			{loading ? (
+				<ul className="space-y-3">
+					{range(3).map((n) => (
+						<li key={`skeleton-${n}`}>
+							<Card>
+								<CardContent>
+									<div className="flex items-center justify-between gap-3">
+										<div className="min-w-0 flex-1 space-y-2">
+											<Skeleton className="h-4 w-40" />
+											<div className="flex items-center gap-2">
+												<Skeleton className="h-5 w-16" />
+												<Skeleton className="h-3 w-32" />
+											</div>
+											<Skeleton className="h-3 w-52" />
+										</div>
+										<div className="flex items-center gap-2">
+											<Skeleton className="h-8 w-16" />
+											<Skeleton className="h-8 w-8" />
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						</li>
+					))}
+				</ul>
+			) : items.length === 0 ? (
+				<p className="text-sm text-muted-foreground">
+					No reviews yet. Import or create one to get started.
+				</p>
+			) : (
+				<ul className="space-y-3">
+					{items.map((p) => (
+						<ReviewItem key={p.id} item={p} onDelete={onDelete} />
+					))}
+				</ul>
+			)}
+		</div>
+	);
+}
+
+type ReviewItemProps = {
+	item: ProjectRow;
+	onDelete: (id: string) => void;
+};
+
+function ReviewItem({ item, onDelete }: ReviewItemProps) {
+	const [copied, setCopied] = useState(false);
+
+	const copyId = async () => {
+		try {
+			await navigator.clipboard.writeText(item.id);
+			setCopied(true);
+			setTimeout(() => setCopied(false), 1200);
+		} catch {
+			// noop
+		}
+	};
+
+	return (
+		<li>
+			<Card className="group">
+				<CardContent>
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div className="min-w-0 flex-1">
+							<div className="flex items-center gap-2">
+								<div className="text-sm font-medium truncate">
+									{item.meta.title}
+								</div>
+								<Badge variant="secondary" className="shrink-0">
+									<Languages className="mr-1 h-3 w-3" />
+									{item.meta.sourceLang} → {item.meta.targetLang}
+								</Badge>
+							</div>
+							<div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+								<span className="truncate font-mono">{item.id}</span>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="h-6 w-6"
+									aria-label="Copy ID"
+									onClick={copyId}
+								>
+									{copied ? (
+										<Check className="h-3.5 w-3.5" />
+									) : (
+										<Copy className="h-3.5 w-3.5" />
+									)}
+								</Button>
+							</div>
+							<div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+								<Clock className="h-3.5 w-3.5" />
+								<span>Updated {new Date(item.updatedAt).toLocaleString()}</span>
+							</div>
+						</div>
+						<div className="flex items-center gap-2 self-end sm:self-auto">
+							<Button asChild size="sm" variant="outline" className="gap-1">
+								<Link href={`/review#${encodeURIComponent(item.id)}`}>
+									Open
+									<ArrowRight className="ml-1 h-4 w-4" />
+								</Link>
+							</Button>
+							<Button
+								variant="destructive"
+								size="sm"
+								aria-label="Delete review"
+								onClick={() => onDelete(item.id)}
 							>
-								<div className="min-w-0 flex-1">
-									<div className="text-sm font-medium truncate">
-										{p.meta.title}
-									</div>
-									<div className="text-xs text-muted-foreground">
-										{p.meta.sourceLang} → {p.meta.targetLang}
-									</div>
-									<div className="text-xs text-muted-foreground truncate">
-										{p.id}
-									</div>
-									<div className="text-xs text-muted-foreground">
-										Updated {new Date(p.updatedAt).toLocaleString()}
-									</div>
-								</div>
-								<div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-									<Button
-										asChild
-										variant="outline"
-										size="sm"
-										className="text-xs"
-									>
-										<Link href={`/review#${encodeURIComponent(p.id)}`}>
-											Open
-										</Link>
-									</Button>
-									<Button
-										variant="destructive"
-										size="sm"
-										onClick={() => onDelete(p.id)}
-									>
-										<Trash2 className="h-4 w-4" />
-									</Button>
-								</div>
-							</li>
-						))}
-					</ul>
-				)}
-			</CardContent>
-		</Card>
+								<Trash2 className="h-4 w-4" />
+							</Button>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+		</li>
 	);
 }

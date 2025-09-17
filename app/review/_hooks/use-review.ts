@@ -13,7 +13,7 @@ import {
 	parseTransEditUpload,
 	type TransEditFile,
 	toLocaleJson,
-} from "@/lib/transedit";
+} from "@/lib/helpers/transedit";
 
 export type ReviewFormValues = {
 	translations: string[];

@@ -11,7 +11,7 @@ import {
 	readJsonFromFile,
 	safeJsonParse,
 	toTransEditJson,
-} from "@/lib/transedit";
+} from "@/lib/helpers/transedit";
 
 type JsonObject = Record<string, unknown>;
 
@@ -143,7 +143,7 @@ export function useCreateReview() {
 		setParseErrors([]);
 		setShareUrl(null);
 
-	const { sourceLang, targetLang, title } = values;
+		const { sourceLang, targetLang, title } = values;
 		const { sourceMode, targetMode } = values;
 		const enFile = values.enFile;
 		const localeFile = values.localeFile;

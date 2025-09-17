@@ -20,9 +20,8 @@ export function ReviewMetaBar({
 	translated: number;
 	total: number;
 }) {
-	const displayTitle = (title && title.trim() !== "")
-		? title
-		: `${sourceLang} → ${targetLang}`;
+	const displayTitle =
+		title && title.trim() !== "" ? title : `${sourceLang} → ${targetLang}`;
 	return (
 		<Card>
 			<CardContent className="p-4">

@@ -63,7 +63,10 @@ export function CreateClient() {
 								<FormItem>
 									<FormLabel>Title</FormLabel>
 									<FormControl>
-										<Input placeholder="e.g., Marketing Site – Korean" {...field} />
+										<Input
+											placeholder="e.g., Marketing Site – Korean"
+											{...field}
+										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>

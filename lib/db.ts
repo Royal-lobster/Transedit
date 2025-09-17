@@ -1,5 +1,5 @@
 import Dexie, { type Table } from "dexie";
-import type { FlatMap, TransEditFile } from "./transedit";
+import type { FlatMap, TransEditFile } from "./helpers/transedit";
 
 export interface ProjectRow {
 	id: string; // same as TransEditFile.id
