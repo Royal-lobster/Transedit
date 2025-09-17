@@ -76,8 +76,7 @@ export function useCreateReview() {
 		target: number;
 	} | null>(null);
 	const [shareUrl, setShareUrl] = useState<string | null>(null);
-	const { createShareLinkWithToast, isPending: isSharing } =
-		useCreateShareLink();
+	const { createShareLink, isPending: isSharing } = useCreateShareLink();
 
 	const inferLangFromFilename = (file: File | null) =>
 		inferLangFromFilenameHelper(file);
@@ -198,9 +197,7 @@ export function useCreateReview() {
 		});
 
 		try {
-			const url = (await createShareLinkWithToast(model, {
-				autoCopy: false,
-			})) as string;
+			const url = await createShareLink(model);
 			setShareUrl(url);
 			setInfo("Share link created successfully.");
 			setPreviewCounts({
