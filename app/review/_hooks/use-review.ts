@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { loadProject, upsertProject } from "@/lib/db";
 import {
 	stats as computeStats,
@@ -45,11 +45,22 @@ export function useReview() {
 		[keys],
 	);
 
+	// Reactively watch form fields that affect derived data
+	const searchValue = useWatch({ control: form.control, name: "search" });
+	const translationsValue = useWatch({
+		control: form.control,
+		name: "translations",
+		defaultValue: [],
+	});
+
 	const filteredIndices = useMemo(() => {
-		const q = (form.getValues("search") ?? "").toLowerCase().trim();
-		if (!q || !model) return keys.map((_, i) => i);
+		const q = String(searchValue ?? "")
+			.toLowerCase()
+			.trim();
+		if (!model) return [];
+		if (!q) return keys.map((_, i) => i);
 		const en = model.en;
-		const t = arrayToMap(form.getValues("translations") ?? []);
+		const t = arrayToMap((translationsValue as string[]) ?? []);
 		const out: number[] = [];
 		keys.forEach((k, i) => {
 			const enVal = String(en[k] ?? "").toLowerCase();
@@ -58,7 +69,7 @@ export function useReview() {
 				out.push(i);
 		});
 		return out;
-	}, [form, keys, model, arrayToMap]);
+	}, [searchValue, translationsValue, keys, model, arrayToMap]);
 
 	const pickFileAndLoad = useCallback(
 		async (file: File) => {

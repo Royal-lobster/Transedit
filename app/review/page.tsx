@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { ActionsBar } from "./_components/actions-bar";
@@ -125,11 +126,16 @@ function ReviewContent({ onSelect }: { onSelect: (key: string) => void }) {
 
 	return (
 		<div className="grid gap-6 grid-cols-1 lg:grid-cols-[1fr_280px] xl:grid-cols-[1fr_320px]">
-			<Card className="overflow-hidden">
+			<Card className="overflow-visible bg-transparent border-none shadow-none">
 				<CardHeader className="pb-2">
-					<CardTitle className="text-base">Translations</CardTitle>
+					<div className="flex items-center justify-between">
+						<CardTitle className="text-base">Translations</CardTitle>
+						<Badge variant="outline" className="text-xs">
+							Auto saving
+						</Badge>
+					</div>
 				</CardHeader>
-				<CardContent className="p-4">
+				<CardContent className="p-0">
 					<div className="h-full">
 						{filteredIndices.length === 0 ? (
 							<p className="text-sm text-muted-foreground">No matches.</p>
