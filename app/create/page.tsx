@@ -1,6 +1,6 @@
 "use client";
 
-import { FileDown, Upload } from "lucide-react";
+import { FileDown, Loader, Upload } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,10 +13,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ShareLinkPanel } from "./_components/share-link-panel";
-// file input is now used within extracted subcomponents
 import { SourceInput } from "./_components/source-input";
 import { TargetInput } from "./_components/target-input";
-// removed inline textarea/toggle usage after extraction
 import { useCreateReview } from "./_hooks/use-create-review";
 
 function CreatePage() {
@@ -163,7 +161,7 @@ function CreatePage() {
 								className="gap-2 w-full sm:w-auto"
 							>
 								{isSharing ? (
-									<svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" />
+									<Loader className="animate-spin" />
 								) : (
 									<Upload className="h-4 w-4" />
 								)}
