@@ -34,7 +34,6 @@ export function ReviewSkeleton() {
 								<div className="h-6 w-full animate-pulse rounded bg-muted/50" />
 							</div>
 						))}
-						<p className="mt-4 text-xs text-muted-foreground">Loading…</p>
 					</CardContent>
 				</Card>
 
