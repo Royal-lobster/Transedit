@@ -48,18 +48,16 @@ function buildTree(keys: string[]) {
 export function KeysTree({ keys, onSelect, className }: KeysTreeProps) {
 	const tree = useMemo(() => buildTree(keys), [keys]);
 	return (
-		<Card>
+		<Card className="pb-0 gap-0">
 			<CardHeader className="border-b">
 				<CardTitle className="text-base">Keys</CardTitle>
 			</CardHeader>
 			<CardContent className="!p-0">
-				<div className={cn("text-sm", className)}>
-					<ScrollArea className="h-[300px] sm:h-[400px] lg:h-[calc(100vh-410px)]">
-						<div className="p-2">
-							{Object.values(tree).map((n) => (
-								<TreeNode key={n.path} node={n} depth={0} onSelect={onSelect} />
-							))}
-						</div>
+				<div className={cn("text-sm leading-tight", className)}>
+					<ScrollArea className="h-[300px] p-2 sm:h-[400px] lg:h-[calc(100vh-424px)]">
+						{Object.values(tree).map((n) => (
+							<TreeNode key={n.path} node={n} depth={0} onSelect={onSelect} />
+						))}
 					</ScrollArea>
 				</div>
 			</CardContent>
@@ -86,7 +84,7 @@ function TreeNode({
 			<button
 				type="button"
 				className={cn(
-					"flex w-full items-center gap-2 py-2 px-2 rounded hover:bg-muted text-left min-h-[44px] touch-manipulation",
+					"flex w-full items-center gap-1.5 py-1 px-2 rounded-md hover:bg-muted text-left min-h-8 touch-manipulation",
 					isLeaf && "text-foreground",
 				)}
 				style={{ paddingLeft: padding }}
@@ -95,15 +93,15 @@ function TreeNode({
 					else setOpen((o) => !o);
 				}}
 			>
-				<span className="inline-flex w-5 items-center justify-center text-muted-foreground">
+				<span className="inline-flex size-5 items-center justify-center text-muted-foreground">
 					{hasChildren ? (
 						open ? (
-							<ChevronDown className="h-4 w-4" />
+							<ChevronDown className="size-4" />
 						) : (
-							<ChevronRight className="h-4 w-4" />
+							<ChevronRight className="size-4" />
 						)
 					) : (
-						<Dot className="h-4 w-4" />
+						<Dot className="size-4" />
 					)}
 				</span>
 				<span className={cn(isLeaf ? "font-normal" : "font-medium")}>
