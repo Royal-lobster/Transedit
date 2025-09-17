@@ -5,8 +5,15 @@
 - Upload translation files (e.g., `en.json` and a target language JSON) to generate a `.transedit` review file.
 - Open a review dashboard to edit translations with autosave, undo, and snapshots.
 - Export updated locale JSON files after review.
+- Share review links via Catbox-hosted files for easy collaboration.
 - All operations happen locally in the browser—no server or external database required. Data is stored in IndexedDB (Dexie).
 - Modern UI using shadcn/ui components, lucide icons, and Tailwind CSS.
+
+**Architecture Highlights:**
+- **Sharing Mechanism:** Uses Catbox (a file hosting service) to upload `.transedit` files and generate short share links (`/review?shareId={catbox_id}`). Reviewers can access shared reviews, with progress merged from local storage.
+- **Hook-Based Logic:** Complex logic is extracted into custom hooks following single responsibility (e.g., `use-review-loader` for loading, `use-translations-form` for form management, `use-share-link` for sharing).
+- **Async Handling:** Leverages TanStack Query for data fetching (`useQuery`) and mutations (`useMutation`), with toast notifications for user feedback.
+- **Local Persistence:** IndexedDB via Dexie for storing projects, progress, and snapshots.
 
 ---
 
@@ -19,6 +26,7 @@
 - Reusability: Hooks should be designed for reuse across different components when possible.
 - Separation from UI: Business logic should live in hooks, keeping components focused on rendering.
 - Use tanstack query for async functions. When ever you see isLoading, isFetching, isSuccess, isError, etc. its a sign that you should use tanstack query.
+- Recent Implementation: Split complex hooks into focused sub-hooks (e.g., `useReview` decomposed into `use-review-loader`, `use-translations-form`, and `use-share-link`) to adhere to single responsibility. Use `useMutation` for async operations like share link generation, with toast notifications for user feedback.
 
 ## Overall Code Style
 - Readability First: Code should be easy to understand at a glance, avoiding clever tricks that sacrifice clarity.
@@ -82,24 +90,3 @@
 - Maintain consistent patterns at each level of nesting
 - Split complex components into smaller pieces rather than creating large files
 - Use explicit naming over clever abbreviations
-
----
-
-## Refactor Notes (2025-09-17)
-
-- Co-located page-specific logic in custom hooks under `_hooks/`:
-  - `app/create/_hooks/useCreateReview.ts`: encapsulates form state, JSON validation, file reading, and `.transedit` generation + share URL.
-  - `app/review/_hooks/useReview.ts`: encapsulates loading `.transedit` (from file or URL hash), autosave to IndexedDB, snapshot management, derived search/filter, and live progress.
-- Updated `app/create/page.tsx` and `app/review/page.tsx` to use these hooks, keeping components focused on rendering.
-
-Additional updates:
-- Extracted client-only UI into `_components` and converted pages to server components:
-  - `app/create/_components/create-client.tsx` rendered by `app/create/page.tsx` (server component)
-  - `app/review/_components/review-client.tsx` rendered by `app/review/page.tsx` (server component)
-- Standardized hook filenames to kebab-case and added shim files for transitional compatibility.
-
-Suggested next steps:
-- Extract small UI pieces from `app/review/page.tsx` into `_components/` (e.g., `translations-list.tsx`, `snapshots-panel.tsx`).
-- Add zod schemas in `_schema/` if additional validation is needed for review inputs.
-- Introduce basic unit tests for `lib/transedit` helpers (flatten/unflatten, mergeProgress, stats).
-- Consider TanStack Query for any future async IO beyond Dexie calls, per guidelines.

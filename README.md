@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TransEdit
 
-## Getting Started
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.3-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-First, run the development server:
+A modern, local-first web application for reviewing and editing translation files (locale JSONs). Built with Next.js, TransEdit provides a portable workflow for translators and developers to manage multilingual content efficiently.
+
+## ✨ Features
+
+- **Upload & Generate**: Upload source and target language JSON files to create a `.transedit` review file
+- **Review Dashboard**: Interactive interface for editing translations with real-time autosave
+- **Undo & Snapshots**: Full undo/redo functionality and snapshot management for version control
+- **Search & Filter**: Powerful search and filtering capabilities across translations
+- **Export**: Export updated locale JSON files after review
+- **Share Reviews**: Generate shareable links via Catbox for easy collaboration
+- **Local-First**: All operations happen locally in the browser using IndexedDB—no server required
+- **Modern UI**: Beautiful interface built with shadcn/ui, Lucide icons, and Tailwind CSS
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) with App Router
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with [shadcn/ui](https://ui.shadcn.com/) components
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Database**: [Dexie](https://dexie.org/) for IndexedDB
+- **Forms**: [React Hook Form](https://react-hook-form.com/) with [Zod](https://zod.dev/) validation
+- **State Management**: [TanStack Query](https://tanstack.com/query) for async operations
+- **Theming**: [next-themes](https://github.com/pacocoursey/next-themes) for dark/light mode
+- **Sharing**: [node-catbox](https://www.npmjs.com/package/node-catbox) for file hosting
+- **Notifications**: [Sonner](https://sonner.emilkowal.ski/) for toast notifications
+
+## 🚀 Installation
+
+### Prerequisites
+
+- Node.js 18+ and pnpm
+
+````markdown
+# TransEdit
+
+TransEdit is a small, local-first Next.js app for reviewing and editing translation (locale) JSON files.
+
+Key features
+
+- Upload source (e.g. `en.json`) and target locale files to create a `.transedit` review file.
+- Interactive review dashboard with autosave and undo/redo.
+- Snapshot support to capture versions while reviewing.
+- Search and filter translations.
+- Export updated locale JSON files.
+- Share reviews by uploading the `.transedit` file to Catbox and generating a short share link (`/review?shareId=...`).
+- Local storage via IndexedDB (Dexie); no remote database required for core functionality.
+
+Quick start
+
+1. Install dependencies and run the dev server (pnpm preferred):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Open http://localhost:3000 and use the Create page to import files or the Review page to open a `.transedit` file.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Notes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- The app uses Catbox to host shared `.transedit` files when you generate share links. Shared links fetch the review file server-side and merge any existing local progress.
+- This repository is primarily for personal use and experimentation; the README is intentionally minimal.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+````
+2. Use the search bar to find specific translations
