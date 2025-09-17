@@ -2,6 +2,7 @@
 
 import { FileDown, Loader, Upload } from "lucide-react";
 import Link from "next/link";
+import ShareDisclaimer from "@/components/shared/share-disclaimer";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -31,14 +32,14 @@ function CreatePage() {
 		disabled,
 	} = useCreateReview();
 
-	// modes are handled inside subcomponents
-
 	return (
 		<div className="p-6 max-w-2xl mx-auto">
 			<p className="mb-6 text-sm text-muted-foreground">
 				Upload your English source (en.json) or paste JSON directly. Optionally
 				add a target JSON (e.g., ko.json). Enter the target language code and a
-				title to generate a sharable .transedit file.
+				title to generate a sharable .transedit file. Creating a share link will
+				upload the .transedit file to catbox.moe for temporary hosting so others
+				with the link can access it.
 			</p>
 
 			<Form {...form}>
@@ -153,20 +154,22 @@ function CreatePage() {
 								<FileDown className="h-4 w-4" />
 								Generate .transedit
 							</Button>
-							<Button
-								type="button"
-								variant="secondary"
-								disabled={disabled || isSharing}
-								onClick={onCreateShareLink}
-								className="gap-2 w-full sm:w-auto"
-							>
-								{isSharing ? (
-									<Loader className="animate-spin" />
-								) : (
-									<Upload className="h-4 w-4" />
-								)}
-								Create Share Link
-							</Button>
+							<ShareDisclaimer>
+								<Button
+									type="button"
+									variant="secondary"
+									disabled={disabled || isSharing}
+									onClick={onCreateShareLink}
+									className="gap-2 w-full sm:w-auto"
+								>
+									{isSharing ? (
+										<Loader className="animate-spin" />
+									) : (
+										<Upload className="h-4 w-4" />
+									)}
+									Create Share Link
+								</Button>
+							</ShareDisclaimer>
 						</div>
 
 						<Button

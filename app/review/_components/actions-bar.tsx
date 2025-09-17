@@ -1,6 +1,7 @@
 "use client";
 
 import { MoreVertical } from "lucide-react";
+import ShareDisclaimer from "@/components/shared/share-disclaimer";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -9,6 +10,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type ActionsBarProps = {
 	targetLang: string | null;
@@ -45,9 +51,11 @@ export function ActionsBar({
 						Download .transedit
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={onCopyShareLink} disabled={isSharing}>
-						{isSharing ? "Creating share link…" : "Copy share link"}
-					</DropdownMenuItem>
+					<ShareDisclaimer side="right">
+						<DropdownMenuItem onClick={onCopyShareLink} disabled={isSharing}>
+							{isSharing ? "Creating share link…" : "Copy share link"}
+						</DropdownMenuItem>
+					</ShareDisclaimer>
 				</DropdownMenuContent>
 			</DropdownMenu>
 		</div>

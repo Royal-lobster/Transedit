@@ -44,21 +44,20 @@ TransEdit is a small, local-first Next.js app for reviewing and editing translat
 
 Key features
 
-- Upload source (e.g. `en.json`) and target locale files to create a `.transedit` review file.
+ **Share Reviews**: Generate shareable links via Catbox (uploads the .transedit file to catbox.moe for temporary hosting) for easy collaboration
 - Interactive review dashboard with autosave and undo/redo.
 - Snapshot support to capture versions while reviewing.
 - Search and filter translations.
 - Export updated locale JSON files.
 - Share reviews by uploading the `.transedit` file to Catbox and generating a short share link (`/review?shareId=...`).
-- Local storage via IndexedDB (Dexie); no remote database required for core functionality.
 
 Quick start
 
-1. Install dependencies and run the dev server (pnpm preferred):
+ Share reviews by uploading the `.transedit` file to Catbox (catbox.moe) and generating a short share link (`/review?shareId=...`).
 
 ```bash
 pnpm install
-pnpm dev
+ The app uses Catbox (catbox.moe) to host shared `.transedit` files when you generate share links. Creating a share link uploads the file to Catbox for temporary hosting; shared links fetch the review file server-side and merge any existing local progress.
 ```
 
 2. Open http://localhost:3000 and use the Create page to import files or the Review page to open a `.transedit` file.
