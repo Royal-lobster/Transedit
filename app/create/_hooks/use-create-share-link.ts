@@ -1,22 +1,16 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { useCallback } from "react";
 import { toast } from "sonner";
 import { type TransEditFile, toTransEditJson } from "@/lib/helpers/transedit";
 
-export function useShareLink(
-	model: TransEditFile | null,
-	getCurrentTarget: () => TransEditFile | null,
-) {
-	const shareMutation = useMutation({
-		mutationFn: async () => {
-			const current = getCurrentTarget();
-			if (!current) throw new Error("No review loaded");
+export function useCreateShareLink() {
+	const mutation = useMutation({
+		mutationFn: async (model: TransEditFile) => {
 			const res = await fetch("/api/share", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
-				body: toTransEditJson(current),
+				body: toTransEditJson(model),
 			});
 			if (!res.ok) {
 				const j = await res.json().catch(() => ({ error: res.statusText }));
@@ -28,21 +22,30 @@ export function useShareLink(
 		},
 	});
 
-	const onCopyShareLink = useCallback(async () => {
-		if (!model) return;
+	const createShareLink = mutation.mutateAsync;
+
+	const createShareLinkWithToast = async (
+		model: TransEditFile,
+		opts: { autoCopy?: boolean } = {},
+	) =>
 		toast.promise(
-			shareMutation.mutateAsync().then(async (shareUrl) => {
-				await navigator.clipboard.writeText(shareUrl);
-				return shareUrl;
+			createShareLink(model).then(async (url) => {
+				if (opts.autoCopy) await navigator.clipboard.writeText(url);
+				return url;
 			}),
 			{
 				loading: "Creating share link…",
-				success: "Share link copied to clipboard",
+				success: opts.autoCopy
+					? "Share link copied to clipboard"
+					: "Share link created",
 				error: (e) =>
 					e instanceof Error ? e.message : "Failed to create share link",
 			},
 		);
-	}, [model, shareMutation]);
 
-	return { onCopyShareLink, isSharing: shareMutation.isPending } as const;
+	return {
+		createShareLink,
+		createShareLinkWithToast,
+		isPending: mutation.isPending,
+	} as const;
 }

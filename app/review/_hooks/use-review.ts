@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import { useCreateShareLink } from "@/app/create/_hooks/use-create-share-link";
 import type { TransEditFile } from "@/lib/helpers/transedit";
 import { useReviewLoader } from "./use-review-loader";
-import { useShareLink } from "./use-share-link";
 import { useTranslationsForm } from "./use-translations-form";
 
 export type ReviewFormValues = {
@@ -38,10 +38,12 @@ export function useReview(opts?: { id?: string | null; data?: string | null }) {
 	}, [form, model]);
 
 	// Share link generation
-	const { onCopyShareLink, isSharing } = useShareLink(
-		model as TransEditFile | null,
-		() => currentSnapshot,
-	);
+	const { createShareLinkWithToast, isPending: isSharing } =
+		useCreateShareLink();
+	const onCopyShareLink = () => {
+		if (!currentSnapshot) return;
+		return createShareLinkWithToast(currentSnapshot, { autoCopy: true });
+	};
 
 	return {
 		form,

@@ -4,11 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useMemo, useState } from "react";
 import { type Resolver, useForm } from "react-hook-form";
 import { z } from "zod";
+import { useCreateShareLink } from "@/app/create/_hooks/use-create-share-link";
+import {
+	computeDisabled,
+	inferLangFromFilename as inferLangFromFilenameHelper,
+	readJsonObjectFromInput,
+	readOptionalJsonObjectFromInput,
+	validateJsonInputs as validateJsonInputsHelper,
+} from "@/lib/helpers/create";
 import {
 	downloadFile,
 	generateTransEditFile,
-	readJsonFromFile,
-	safeJsonParse,
 	toTransEditJson,
 } from "@/lib/helpers/transedit";
 
@@ -70,67 +76,18 @@ export function useCreateReview() {
 		target: number;
 	} | null>(null);
 	const [shareUrl, setShareUrl] = useState<string | null>(null);
-	const [isSharing, setIsSharing] = useState<boolean>(false);
+	const { createShareLinkWithToast, isPending: isSharing } =
+		useCreateShareLink();
 
-	const inferLangFromFilename = (file: File | null) => {
-		if (!file) return "";
-		const base = file.name.toLowerCase();
-		const m = base.match(/^([a-z]{2,3}([-_][a-z]{2,3})?)\.json$/i);
-		return m ? m[1] : "";
-	};
+	const inferLangFromFilename = (file: File | null) =>
+		inferLangFromFilenameHelper(file);
 
 	const validateJsonInputs = useCallback(
 		async (
 			en: { mode: "file" | "paste"; file: File | null; text: string },
 			locale: { mode: "file" | "paste"; file: File | null; text: string },
 		) => {
-			const errs: string[] = [];
-			// Validate source
-			if (en.mode === "file") {
-				if (!en.file) errs.push("Upload en.json (source language file).");
-				if (en.file) {
-					const text = await en.file.text();
-					try {
-						safeJsonParse(text);
-					} catch (e: unknown) {
-						const msg = e instanceof Error ? e.message : String(e);
-						errs.push(`en.json is not valid JSON: ${msg}`);
-					}
-				}
-			} else {
-				if (!en.text || en.text.trim() === "")
-					errs.push("Paste source JSON (en).");
-				else {
-					try {
-						safeJsonParse(en.text);
-					} catch (e: unknown) {
-						const msg = e instanceof Error ? e.message : String(e);
-						errs.push(`Source JSON is not valid: ${msg}`);
-					}
-				}
-			}
-
-			// Validate optional target
-			if (locale.mode === "file") {
-				if (locale.file) {
-					const text = await locale.file.text();
-					try {
-						safeJsonParse(text);
-					} catch (e: unknown) {
-						const msg = e instanceof Error ? e.message : String(e);
-						errs.push(`Target locale file is not valid JSON: ${msg}`);
-					}
-				}
-			} else {
-				if (locale.text && locale.text.trim() !== "") {
-					try {
-						safeJsonParse(locale.text);
-					} catch (e: unknown) {
-						const msg = e instanceof Error ? e.message : String(e);
-						errs.push(`Target JSON is not valid: ${msg}`);
-					}
-				}
-			}
+			const errs = await validateJsonInputsHelper(en, locale);
 			setParseErrors(errs);
 			return errs.length === 0;
 		},
@@ -163,20 +120,18 @@ export function useCreateReview() {
 		if (!ok) return;
 
 		// Parse source object
-		const enObj: JsonObject =
-			sourceMode === "file"
-				? await readJsonFromFile<JsonObject>(enFile as File)
-				: safeJsonParse<JsonObject>(enText);
+		const enObj: JsonObject = await readJsonObjectFromInput(
+			sourceMode,
+			enFile,
+			enText,
+		);
 
 		// Parse optional target object
-		const targetObj: JsonObject | null =
-			targetMode === "file"
-				? localeFile
-					? await readJsonFromFile<JsonObject>(localeFile)
-					: null
-				: localeText.trim() === ""
-					? null
-					: safeJsonParse<JsonObject>(localeText);
+		const targetObj: JsonObject | null = await readOptionalJsonObjectFromInput(
+			targetMode,
+			localeFile,
+			localeText,
+		);
 
 		const model = generateTransEditFile({
 			enObject: enObj,
@@ -222,19 +177,17 @@ export function useCreateReview() {
 		if (!ok) return;
 
 		// Build model (same as onSubmit, but no download)
-		const enObj: JsonObject =
-			sourceMode === "file"
-				? await readJsonFromFile<JsonObject>(enFile as File)
-				: safeJsonParse<JsonObject>(enText);
+		const enObj: JsonObject = await readJsonObjectFromInput(
+			sourceMode,
+			enFile,
+			enText,
+		);
 
-		const targetObj: JsonObject | null =
-			targetMode === "file"
-				? localeFile
-					? await readJsonFromFile<JsonObject>(localeFile)
-					: null
-				: localeText.trim() === ""
-					? null
-					: safeJsonParse<JsonObject>(localeText);
+		const targetObj: JsonObject | null = await readOptionalJsonObjectFromInput(
+			targetMode,
+			localeFile,
+			localeText,
+		);
 
 		const model = generateTransEditFile({
 			enObject: enObj,
@@ -244,22 +197,10 @@ export function useCreateReview() {
 			title,
 		});
 
-		// Upload via API -> Catbox
-		setIsSharing(true);
 		try {
-			const res = await fetch("/api/share", {
-				method: "POST",
-				headers: { "content-type": "application/json" },
-				body: toTransEditJson(model),
-			});
-			if (!res.ok) {
-				const { error } = (await res
-					.json()
-					.catch(() => ({ error: res.statusText }))) as { error?: string };
-				throw new Error(error || `Upload failed (${res.status})`);
-			}
-			const data = (await res.json()) as { id: string; url: string };
-			const url = `${location.origin}/review?shareId=${encodeURIComponent(data.id)}`;
+			const url = (await createShareLinkWithToast(model, {
+				autoCopy: false,
+			})) as string;
 			setShareUrl(url);
 			setInfo("Share link created successfully.");
 			setPreviewCounts({
@@ -269,36 +210,15 @@ export function useCreateReview() {
 		} catch (e) {
 			const msg = e instanceof Error ? e.message : String(e);
 			setParseErrors([msg]);
-		} finally {
-			setIsSharing(false);
 		}
 	};
 
 	// Disabled state must react to form updates; use watch so it re-renders
-	const watchedTitle = form.watch("title");
-	const watchedSourceMode = form.watch("sourceMode");
-	const watchedEnFile = form.watch("enFile");
-	const watchedEnText = form.watch("enText");
-	const watchedTargetLang = form.watch("targetLang");
-	const disabled = useMemo(() => {
-		const hasSource =
-			watchedSourceMode === "file"
-				? !!watchedEnFile
-				: Boolean(watchedEnText && watchedEnText.trim() !== "");
-		const hasTitle = Boolean(watchedTitle && watchedTitle.trim() !== "");
-		return (
-			!hasSource ||
-			!hasTitle ||
-			!watchedTargetLang ||
-			watchedTargetLang.trim() === ""
-		);
-	}, [
-		watchedSourceMode,
-		watchedEnFile,
-		watchedEnText,
-		watchedTargetLang,
-		watchedTitle,
-	]);
+	const watchedValues = form.watch();
+	const disabled = useMemo(
+		() => computeDisabled(watchedValues),
+		[watchedValues],
+	);
 
 	return {
 		form,
