@@ -73,7 +73,7 @@ export default function ReviewPage() {
 							id="review-topbar"
 							className="sticky -mt-20 mb-20 top-14 z-20 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 						>
-							<div className="py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+							<div className="py-3 px-4 space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:items-center sm:justify-between sm:gap-3">
 								<SearchBar control={form.control} />
 								<ActionsBar
 									targetLang={model.meta.targetLang}
@@ -85,7 +85,7 @@ export default function ReviewPage() {
 							</div>
 						</div>
 
-						<div className="grid gap-6 grid-cols-1 xl:grid-cols-[1fr_320px]">
+						<div className="grid gap-6 grid-cols-1 lg:grid-cols-[1fr_280px] xl:grid-cols-[1fr_320px]">
 							<Card className="overflow-hidden">
 								<CardHeader className="pb-2">
 									<CardTitle className="text-base">Translations</CardTitle>
@@ -112,7 +112,7 @@ export default function ReviewPage() {
 								</CardContent>
 							</Card>
 
-							<div className="space-y-4 xl:sticky xl:top-36 xl:self-start">
+							<div className="space-y-4 lg:sticky lg:top-36 lg:self-start order-first lg:order-last">
 								<ReviewMetaBar
 									sourceLang={model.meta.sourceLang}
 									targetLang={model.meta.targetLang}

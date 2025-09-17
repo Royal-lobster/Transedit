@@ -15,8 +15,8 @@ import { ReviewsDashboard } from "./_components/reviews-dashboard";
 export default function Home() {
 	return (
 		<div>
-			<section className="mb-8">
-				<p className="text-muted-foreground">
+			<section className="mb-6 sm:mb-8">
+				<p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
 					Upload translation files to generate a portable review file
 					(.transedit) or open a review dashboard to edit and export updated
 					locale JSON. No server or database required — everything happens
@@ -27,10 +27,10 @@ export default function Home() {
 			<div className="grid gap-6 sm:grid-cols-2">
 				<Card>
 					<CardHeader className="pb-3">
-						<CardTitle className="flex items-center gap-2 text-base">
+						<CardTitle className="flex items-center gap-2 text-sm sm:text-base">
 							<FileDown className="h-4 w-4" /> Create review request
 						</CardTitle>
-						<CardDescription>
+						<CardDescription className="text-xs sm:text-sm">
 							Provide en.json and optional locale.json to generate a sharable
 							.transedit file for reviewers.
 						</CardDescription>
@@ -47,10 +47,10 @@ export default function Home() {
 
 				<Card>
 					<CardHeader className="pb-3">
-						<CardTitle className="flex items-center gap-2 text-base">
+						<CardTitle className="flex items-center gap-2 text-sm sm:text-base">
 							<Edit3 className="h-4 w-4" /> Review translations
 						</CardTitle>
-						<CardDescription>
+						<CardDescription className="text-xs sm:text-sm">
 							Upload a .transedit file to edit translations with autosave, undo,
 							and snapshots. Export the locale JSON.
 						</CardDescription>
@@ -70,7 +70,7 @@ export default function Home() {
 				<ReviewsDashboard />
 			</div>
 
-			<footer className="mt-10 text-xs text-muted-foreground">
+			<footer className="mt-8 sm:mt-10 text-xs text-muted-foreground">
 				Dark themed UI with shadcn components, lucide icons, and local IndexedDB
 				storage (Dexie).
 			</footer>

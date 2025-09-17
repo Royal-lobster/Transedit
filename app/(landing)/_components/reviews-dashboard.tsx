@@ -44,9 +44,9 @@ export function ReviewsDashboard() {
 						{items.map((p) => (
 							<li
 								key={p.id}
-								className="py-3 flex items-center justify-between gap-3"
+								className="py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
 							>
-								<div className="min-w-0">
+								<div className="min-w-0 flex-1">
 									<div className="text-sm font-medium truncate">
 										{p.meta.sourceLang} → {p.meta.targetLang}
 									</div>
@@ -57,15 +57,20 @@ export function ReviewsDashboard() {
 										Updated {new Date(p.updatedAt).toLocaleString()}
 									</div>
 								</div>
-								<div className="flex items-center gap-2 shrink-0">
-									<Button asChild variant="outline">
+								<div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+									<Button
+										asChild
+										variant="outline"
+										size="sm"
+										className="text-xs"
+									>
 										<Link href={`/review#${encodeURIComponent(p.id)}`}>
 											Open
 										</Link>
 									</Button>
 									<Button
 										variant="destructive"
-										size="icon"
+										size="sm"
 										onClick={() => onDelete(p.id)}
 									>
 										<Trash2 className="h-4 w-4" />

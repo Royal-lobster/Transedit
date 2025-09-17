@@ -13,9 +13,9 @@ import type { ReviewFormValues } from "../_hooks/use-review";
 
 export function SearchBar({ control }: { control: Control<ReviewFormValues> }) {
 	return (
-		<div className="sm:w-80">
+		<div className="w-full sm:w-80">
 			<div className="flex items-center gap-2">
-				<Search className="h-4 w-4 text-muted-foreground" />
+				<Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
 				<FormField
 					control={control}
 					name="search"

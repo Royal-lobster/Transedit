@@ -54,8 +54,8 @@ export function KeysTree({ keys, onSelect, className }: KeysTreeProps) {
 			</CardHeader>
 			<CardContent className="!p-0">
 				<div className={cn("text-sm", className)}>
-					<ScrollArea className="h-[calc(100vh-410px)]">
-						<div className="pr-2">
+					<ScrollArea className="h-[300px] sm:h-[400px] lg:h-[calc(100vh-410px)]">
+						<div className="p-2">
 							{Object.values(tree).map((n) => (
 								<TreeNode key={n.path} node={n} depth={0} onSelect={onSelect} />
 							))}
@@ -86,7 +86,7 @@ function TreeNode({
 			<button
 				type="button"
 				className={cn(
-					"flex w-full items-center gap-2 py-1.5 px-1.5 rounded hover:bg-muted text-left",
+					"flex w-full items-center gap-2 py-2 px-2 rounded hover:bg-muted text-left min-h-[44px] touch-manipulation",
 					isLeaf && "text-foreground",
 				)}
 				style={{ paddingLeft: padding }}

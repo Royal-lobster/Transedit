@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/navbar";
-import { ThemeProvider } from "@/components/theme-provider";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Footer } from "@/app/(layout)/footer";
+import { Navbar } from "@/app/(layout)/navbar";
+import { ThemeProvider } from "@/app/(layout)/theme-provider";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -33,11 +33,10 @@ export default function RootLayout({
 				<ThemeProvider>
 					<div className="min-h-screen flex flex-col">
 						<Navbar />
-						<main className="flex-1 container py-8 mx-auto">{children}</main>
-						<footer className="border-t container mx-auto h-14 flex items-center justify-between text-xs text-muted-foreground">
-							<div>© {new Date().getFullYear()} TransEdit • Made by Srujan</div>
-							<ThemeToggle />
-						</footer>
+						<main className="flex-1 container py-8 px-4 mx-auto">
+							{children}
+						</main>
+						<Footer />
 					</div>
 				</ThemeProvider>
 			</body>

@@ -20,7 +20,7 @@ export function ReviewMetaBar({
 }) {
 	return (
 		<Card>
-			<CardContent>
+			<CardContent className="p-4">
 				<div className="flex flex-col gap-3">
 					<div>
 						<p className="text-sm text-muted-foreground">
@@ -31,10 +31,12 @@ export function ReviewMetaBar({
 						</p>
 						<p className="text-xs text-muted-foreground">
 							Project ID:{" "}
-							<span className="text-muted-foreground/80">{projectId}</span>
+							<span className="text-muted-foreground/80 break-all">
+								{projectId}
+							</span>
 						</p>
 					</div>
-					<div className="min-w-[220px]">
+					<div className="w-full">
 						<Progress value={percent} />
 						<p className="mt-1 text-right text-xs text-muted-foreground">
 							{translated}/{total} • {percent}%

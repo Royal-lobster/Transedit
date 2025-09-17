@@ -64,19 +64,19 @@ function TranslationCard({
 		<Card className="shadow-sm hover:shadow-md transition-shadow">
 			<CardHeader className="pb-3">
 				<CardTitle className="flex items-center justify-between text-sm font-medium">
-					<span className="truncate">{translationKey}</span>
-					<Badge variant="secondary" className="ml-2 flex-shrink-0">
+					<span className="truncate pr-2">{translationKey}</span>
+					<Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
 						<Globe className="w-3 h-3 mr-1" />
 						Key
 					</Badge>
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<div className="flex items-start space-x-2">
+				<div className="flex items-start space-x-3">
 					<Globe className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-					<div className="flex-1">
+					<div className="flex-1 min-w-0">
 						<p className="text-xs text-muted-foreground mb-1">English</p>
-						<p className="text-sm text-foreground">{enText}</p>
+						<p className="text-sm text-foreground break-words">{enText}</p>
 					</div>
 				</div>
 				<FormField
@@ -91,7 +91,7 @@ function TranslationCard({
 							<FormControl>
 								<Textarea
 									placeholder="Enter translation..."
-									className="min-h-[80px] resize-none"
+									className="min-h-[100px] resize-none text-base leading-relaxed"
 									value={(field.value as string) ?? ""}
 									onChange={field.onChange}
 								/>

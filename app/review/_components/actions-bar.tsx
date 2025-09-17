@@ -21,13 +21,22 @@ export function ActionsBar({
 	onTransFileChange,
 }: ActionsBarProps) {
 	return (
-		<div className="flex items-center gap-2">
-			<Button onClick={onDownloadLocale} disabled={!targetLang}>
+		<div className="flex items-center gap-2 flex-shrink-0">
+			<Button
+				onClick={onDownloadLocale}
+				disabled={!targetLang}
+				className="text-sm px-3"
+			>
 				Export {targetLang || "locale"}
 			</Button>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button variant="outline" size="icon" aria-label="More">
+					<Button
+						variant="outline"
+						size="icon"
+						aria-label="More"
+						className="flex-shrink-0"
+					>
 						<MoreHorizontal className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
