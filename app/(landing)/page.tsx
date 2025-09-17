@@ -1,56 +1,8 @@
-"use client";
-
-import { Edit3, FileDown, Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-} from "@/components/ui/sheet";
-import { upsertProject } from "@/lib/db";
-import { parseTransEditUpload } from "@/lib/helpers/transedit";
+import { CreateReviewCard } from "./_components/create-review-card";
+import { ReviewTranslationsCard } from "./_components/review-translations-card";
 import { ReviewsDashboard } from "./_components/reviews-dashboard";
 
 export default function Home() {
-	const [open, setOpen] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [importing, setImporting] = useState(false);
-
-	const handlePick = async (file: File) => {
-		setError(null);
-		setImporting(true);
-		try {
-			const model = await parseTransEditUpload(file);
-			// Save to Dexie so it shows up in the dashboard and can be revisited
-			await upsertProject({
-				id: model.id,
-				meta: model.meta,
-				en: model.en,
-				target: model.target,
-				updatedAt: new Date().toISOString(),
-			});
-			// Navigate to review using id flow
-			window.location.href = `/review?id=${encodeURIComponent(model.id)}`;
-		} catch (e) {
-			const msg = e instanceof Error ? e.message : String(e);
-			setError(msg);
-		} finally {
-			setImporting(false);
-		}
-	};
-
 	return (
 		<div>
 			<section className="mb-6 sm:mb-8">
@@ -63,80 +15,8 @@ export default function Home() {
 			</section>
 
 			<div className="grid gap-6 sm:grid-cols-2">
-				<Card>
-					<CardHeader className="pb-3">
-						<CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-							<FileDown className="h-4 w-4" /> Create review request
-						</CardTitle>
-						<CardDescription className="text-xs sm:text-sm">
-							Provide en.json and optional locale.json to generate a sharable
-							.transedit file for reviewers.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Button asChild className="w-full gap-2">
-							<Link href="/create">
-								<FileDown className="h-4 w-4" />
-								Create .transedit
-							</Link>
-						</Button>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-3">
-						<CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-							<Edit3 className="h-4 w-4" /> Review translations
-						</CardTitle>
-						<CardDescription className="text-xs sm:text-sm">
-							Upload a .transedit file to edit translations with autosave, undo,
-							and snapshots. Export the locale JSON.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Sheet open={open} onOpenChange={setOpen}>
-							<Button
-								variant="outline"
-								className="w-full gap-2"
-								onClick={() => setOpen(true)}
-							>
-								<Edit3 className="h-4 w-4" /> Import .transedit
-							</Button>
-							<SheetContent side="bottom">
-								<SheetHeader>
-									<SheetTitle>Open .transedit</SheetTitle>
-									<SheetDescription>
-										Choose a .transedit file to open the review dashboard. Your
-										edits will auto-save locally.
-									</SheetDescription>
-								</SheetHeader>
-								<div className="p-4 pt-0">
-									<Input
-										type="file"
-										accept=".transedit,application/json"
-										onChange={async (e) => {
-											const f = e.target.files?.[0] ?? null;
-											if (!f) return;
-											await handlePick(f);
-											e.currentTarget.value = "";
-										}}
-									/>
-									{error && (
-										<div className="mt-3 rounded-md border bg-destructive/10 border-destructive/30 p-3 text-sm text-destructive">
-											{error}
-										</div>
-									)}
-									{importing && (
-										<div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-											<Loader2 className="h-4 w-4 animate-spin" />
-											<span>Parsing file…</span>
-										</div>
-									)}
-								</div>
-							</SheetContent>
-						</Sheet>
-					</CardContent>
-				</Card>
+				<CreateReviewCard />
+				<ReviewTranslationsCard />
 			</div>
 
 			<div className="mt-8">
