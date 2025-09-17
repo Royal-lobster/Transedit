@@ -1,4 +1,4 @@
-import Dexie, { Table } from "dexie";
+import Dexie, { type Table } from "dexie";
 import type { FlatMap, TransEditFile } from "./transedit";
 
 export interface ProjectRow {
@@ -70,4 +70,9 @@ export async function deleteProject(id: string) {
 		await db.projects.delete(id);
 		await db.snapshots.bulkDelete(snaps as string[]);
 	});
+}
+
+export async function listProjects(): Promise<ProjectRow[]> {
+	const db = getDB();
+	return db.projects.orderBy("updatedAt").reverse().toArray();
 }

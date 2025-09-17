@@ -11,22 +11,17 @@ import {
 
 type ActionsBarProps = {
 	targetLang: string | null;
-	onSaveSnapshot: () => void;
 	onDownloadLocale: () => void;
 	onTransFileChange: (file: File) => Promise<void>;
 };
 
 export function ActionsBar({
 	targetLang,
-	onSaveSnapshot,
 	onDownloadLocale,
 	onTransFileChange,
 }: ActionsBarProps) {
 	return (
 		<div className="flex items-center gap-2">
-			<Button variant="secondary" onClick={onSaveSnapshot}>
-				Save snapshot
-			</Button>
 			<Button onClick={onDownloadLocale} disabled={!targetLang}>
 				Export {targetLang || "locale"}
 			</Button>

@@ -2,13 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-	listSnapshots,
-	loadProject,
-	type SnapshotRow,
-	saveSnapshot,
-	upsertProject,
-} from "@/lib/db";
+import { loadProject, upsertProject } from "@/lib/db";
 import {
 	stats as computeStats,
 	debounce,
@@ -24,18 +18,16 @@ import {
 export type ReviewFormValues = {
 	translations: string[];
 	search: string;
-	note: string;
 	transFile: File | null;
 };
 
 export function useReview() {
 	const form = useForm<ReviewFormValues>({
-		defaultValues: { translations: [], search: "", note: "", transFile: null },
+		defaultValues: { translations: [], search: "", transFile: null },
 		mode: "onChange",
 	});
 
 	const [model, setModel] = useState<TransEditFile | null>(null);
-	const [snapshots, setSnapshots] = useState<SnapshotRow[]>([]);
 	const [error, setError] = useState<string | null>(null);
 
 	const keys = useMemo(
@@ -83,12 +75,17 @@ export function useReview() {
 				form.reset({
 					translations: initialTranslations,
 					search: "",
-					note: "",
 					transFile: file,
 				});
 
-				const snaps = await listSnapshots(merged.id);
-				setSnapshots(snaps);
+				// Upsert immediately so it appears on dashboard even before edits
+				await upsertProject({
+					id: merged.id,
+					meta: merged.meta,
+					en: merged.en,
+					target: merged.target,
+					updatedAt: new Date().toISOString(),
+				});
 			} catch (e) {
 				const msg = e instanceof Error ? e.message : String(e);
 				setError(msg);
@@ -97,7 +94,7 @@ export function useReview() {
 		[form],
 	);
 
-	// Load from URL hash on mount
+	// Load from URL hash on mount: supports encoded data or plain id
 	useEffect(() => {
 		if (model) return;
 		if (typeof window === "undefined") return;
@@ -106,22 +103,56 @@ export function useReview() {
 		(async () => {
 			try {
 				const fromHash = parseTransEditFromHash(h);
-				if (!fromHash) return;
-				const prior = await loadProject(fromHash.id);
-				const merged = prior ? mergeProgress(fromHash, prior.target) : fromHash;
-				setModel(merged);
-				const keysSorted = Object.keys(merged.en).sort();
-				const initialTranslations = keysSorted.map(
-					(k) => merged.target[k] ?? "",
-				);
-				form.reset({
-					translations: initialTranslations,
-					search: "",
-					note: "",
-					transFile: null,
-				});
-				const snaps = await listSnapshots(merged.id);
-				setSnapshots(snaps);
+				if (fromHash) {
+					const prior = await loadProject(fromHash.id);
+					const merged = prior
+						? mergeProgress(fromHash, prior.target)
+						: fromHash;
+					setModel(merged);
+					const keysSorted = Object.keys(merged.en).sort();
+					const initialTranslations = keysSorted.map(
+						(k) => merged.target[k] ?? "",
+					);
+					form.reset({
+						translations: initialTranslations,
+						search: "",
+						transFile: null,
+					});
+
+					// Upsert immediately so it appears on dashboard
+					await upsertProject({
+						id: merged.id,
+						meta: merged.meta,
+						en: merged.en,
+						target: merged.target,
+						updatedAt: new Date().toISOString(),
+					});
+					return;
+				}
+
+				// Fallback: interpret hash as a plain id
+				const clean = h.startsWith("#") ? h.slice(1) : h;
+				if (clean && !clean.includes("=")) {
+					const prior = await loadProject(clean);
+					if (prior) {
+						const merged = {
+							id: prior.id,
+							meta: prior.meta,
+							en: prior.en,
+							target: prior.target,
+						} as TransEditFile;
+						setModel(merged);
+						const keysSorted = Object.keys(merged.en).sort();
+						const initialTranslations = keysSorted.map(
+							(k) => merged.target[k] ?? "",
+						);
+						form.reset({
+							translations: initialTranslations,
+							search: "",
+							transFile: null,
+						});
+					}
+				}
 			} catch {
 				// ignore
 			}
@@ -178,24 +209,6 @@ export function useReview() {
 		return computeStats(temp);
 	}, [form, model, arrayToMap]);
 
-	const onSaveSnapshot = useCallback(async () => {
-		if (!model) return;
-		const arr = form.getValues("translations") ?? [];
-		const map = arrayToMap(arr);
-		const note = form.getValues("note")?.trim() || undefined;
-		const at = new Date().toISOString();
-		await saveSnapshot({
-			id: crypto.randomUUID(),
-			projectId: model.id,
-			at,
-			target: map,
-			note,
-		});
-		const snaps = await listSnapshots(model.id);
-		setSnapshots(snaps);
-		form.setValue("note", "");
-	}, [form, model, arrayToMap]);
-
 	const onDownloadLocale = useCallback(() => {
 		if (!model) return;
 		const arr = form.getValues("translations") ?? [];
@@ -207,13 +220,11 @@ export function useReview() {
 	return {
 		form,
 		model,
-		snapshots,
 		error,
 		keys,
 		filteredIndices,
 		pickFileAndLoad,
 		onTransFileChange,
-		onSaveSnapshot,
 		onDownloadLocale,
 		liveStats,
 	};

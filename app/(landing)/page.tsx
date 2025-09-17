@@ -10,10 +10,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { ReviewsDashboard } from "./_components/reviews-dashboard";
 
 export default function Home() {
 	return (
-		<div className="mx-auto max-w-4xl">
+		<div>
 			<section className="mb-8">
 				<p className="text-muted-foreground">
 					Upload translation files to generate a portable review file
@@ -63,6 +64,10 @@ export default function Home() {
 						</Button>
 					</CardContent>
 				</Card>
+			</div>
+
+			<div className="mt-8">
+				<ReviewsDashboard />
 			</div>
 
 			<footer className="mt-10 text-xs text-muted-foreground">
