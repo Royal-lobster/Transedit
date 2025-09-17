@@ -1,0 +1,159 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback, useMemo, useState } from "react";
+import { type Resolver, useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+	buildShareUrl,
+	downloadFile,
+	generateTransEditFile,
+	readJsonFromFile,
+	safeJsonParse,
+	toTransEditJson,
+} from "@/lib/transedit";
+
+type JsonObject = Record<string, unknown>;
+
+export const createSchema = z
+	.object({
+		sourceLang: z.string().trim().min(1, "Source language is required"),
+		targetLang: z.string().trim().min(1, "Target language is required"),
+		// Keep file inputs in the parsed result without strict validation
+		enFile: z.any().nullable().optional(),
+		localeFile: z.any().nullable().optional(),
+	})
+	.passthrough();
+
+export type CreateFormValues = {
+	sourceLang: string;
+	targetLang: string;
+	enFile: File | null;
+	localeFile: File | null;
+};
+
+export function useCreateReview() {
+	const resolver = zodResolver(
+		createSchema,
+	) as unknown as Resolver<CreateFormValues>;
+
+	const form = useForm<CreateFormValues>({
+		resolver,
+		defaultValues: {
+			sourceLang: "en",
+			targetLang: "",
+			enFile: null,
+			localeFile: null,
+		},
+		mode: "onChange",
+	});
+
+	const [info, setInfo] = useState<string | null>(null);
+	const [parseErrors, setParseErrors] = useState<string[]>([]);
+	const [previewCounts, setPreviewCounts] = useState<{
+		en: number;
+		target: number;
+	} | null>(null);
+	const [shareUrl, setShareUrl] = useState<string | null>(null);
+
+	const inferLangFromFilename = (file: File | null) => {
+		if (!file) return "";
+		const base = file.name.toLowerCase();
+		const m = base.match(/^([a-z]{2,3}([-_][a-z]{2,3})?)\.json$/i);
+		return m ? m[1] : "";
+	};
+
+	const validateJsonFiles = useCallback(
+		async (enFile: File | null, localeFile: File | null) => {
+			const errs: string[] = [];
+			if (!enFile) errs.push("Upload en.json (source language file).");
+			if (enFile) {
+				const text = await enFile.text();
+				try {
+					safeJsonParse(text);
+				} catch (e: unknown) {
+					const msg = e instanceof Error ? e.message : String(e);
+					errs.push(`en.json is not valid JSON: ${msg}`);
+				}
+			}
+			if (localeFile) {
+				const text = await localeFile.text();
+				try {
+					safeJsonParse(text);
+				} catch (e: unknown) {
+					const msg = e instanceof Error ? e.message : String(e);
+					errs.push(`Target locale file is not valid JSON: ${msg}`);
+				}
+			}
+			setParseErrors(errs);
+			return errs.length === 0;
+		},
+		[],
+	);
+
+	const onSubmit = async (values: CreateFormValues) => {
+		setInfo(null);
+		setPreviewCounts(null);
+		setParseErrors([]);
+		setShareUrl(null);
+
+		const { sourceLang, targetLang } = values;
+		const enFile = values.enFile;
+		const localeFile = values.localeFile;
+
+		if (!enFile) {
+			setParseErrors(["Upload en.json (source language file)."]);
+			return;
+		}
+		if (!targetLang || targetLang.trim() === "") {
+			setParseErrors(["Enter a target language code (e.g., ko, zh-CN)."]);
+			return;
+		}
+
+		const ok = await validateJsonFiles(enFile, localeFile);
+		if (!ok) return;
+
+		const enObj = await readJsonFromFile<JsonObject>(enFile);
+		const targetObj = localeFile
+			? await readJsonFromFile<JsonObject>(localeFile)
+			: null;
+
+		const model = generateTransEditFile({
+			enObject: enObj,
+			targetObject: targetObj,
+			sourceLang,
+			targetLang,
+		});
+
+		const json = toTransEditJson(model);
+		const fileName = `${model.meta.sourceLang}-${model.meta.targetLang}.transedit`;
+		downloadFile(fileName, json, "application/json");
+		setShareUrl(buildShareUrl(model));
+
+		setPreviewCounts({
+			en: Object.keys(model.en).length,
+			target: Object.keys(model.target).length,
+		});
+		setInfo(`.transedit generated with ${Object.keys(model.en).length} keys.`);
+	};
+
+	// Disabled state must react to form updates; use watch so it re-renders
+	const watchedEnFile = form.watch("enFile");
+	const watchedTargetLang = form.watch("targetLang");
+	const disabled = useMemo(() => {
+		return (
+			!watchedEnFile || !watchedTargetLang || watchedTargetLang.trim() === ""
+		);
+	}, [watchedEnFile, watchedTargetLang]);
+
+	return {
+		form,
+		info,
+		parseErrors,
+		previewCounts,
+		shareUrl,
+		inferLangFromFilename,
+		onSubmit,
+		disabled,
+	};
+}
