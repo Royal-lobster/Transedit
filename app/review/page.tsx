@@ -7,7 +7,6 @@ import { Form } from "@/components/ui/form";
 import { ActionsBar } from "./_components/actions-bar";
 import { KeysTree } from "./_components/keys-tree";
 import { ReviewMetaBar } from "./_components/review-meta-bar";
-import { ReviewUploader } from "./_components/review-uploader";
 import { SearchBar } from "./_components/search-bar";
 import { TranslationsList } from "./_components/translations-list";
 import { useReview } from "./_hooks/use-review";
@@ -15,12 +14,10 @@ import { useReview } from "./_hooks/use-review";
 interface ReviewContextType {
 	form: ReturnType<typeof useReview>["form"];
 	model: ReturnType<typeof useReview>["model"];
-	error: ReturnType<typeof useReview>["error"];
 	keys: ReturnType<typeof useReview>["keys"];
 	filteredIndices: ReturnType<typeof useReview>["filteredIndices"];
 	onDownloadLocale: ReturnType<typeof useReview>["onDownloadLocale"];
 	liveStats: ReturnType<typeof useReview>["liveStats"];
-	pickFileAndLoad: ReturnType<typeof useReview>["pickFileAndLoad"];
 }
 
 const ReviewContext = createContext<ReviewContextType | null>(null);
@@ -68,7 +65,9 @@ export default function ReviewPage() {
 			<Form {...reviewData.form}>
 				<ReviewContext.Provider value={reviewData}>
 					{!reviewData.model ? (
-						<ReviewUploaderSection />
+						<div className="rounded-xl border p-6 text-sm text-muted-foreground">
+							No review loaded. Open from the landing page.
+						</div>
 					) : (
 						<div className="space-y-6">
 							<ReviewTopBar />
@@ -81,24 +80,8 @@ export default function ReviewPage() {
 	);
 }
 
-function ReviewUploaderSection() {
-	const { form, error, pickFileAndLoad } = useReviewContext();
-
-	return (
-		<Card>
-			<CardContent className="p-6">
-				<ReviewUploader
-					control={form.control}
-					error={error}
-					onPick={pickFileAndLoad}
-				/>
-			</CardContent>
-		</Card>
-	);
-}
-
 function ReviewTopBar() {
-	const { form, model, onDownloadLocale, pickFileAndLoad } = useReviewContext();
+	const { form, model, onDownloadLocale } = useReviewContext();
 
 	if (!model) return null;
 
@@ -112,7 +95,6 @@ function ReviewTopBar() {
 				<ActionsBar
 					targetLang={model.meta.targetLang}
 					onDownloadLocale={onDownloadLocale}
-					onTransFileChange={pickFileAndLoad}
 				/>
 			</div>
 		</div>

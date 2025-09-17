@@ -2,6 +2,7 @@
 
 import { Edit3, FileDown } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,9 +11,33 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
+import { buildShareUrl, parseTransEditUpload } from "@/lib/helpers/transedit";
 import { ReviewsDashboard } from "./_components/reviews-dashboard";
 
 export default function Home() {
+	const [open, setOpen] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	const handlePick = async (file: File) => {
+		setError(null);
+		try {
+			const model = await parseTransEditUpload(file);
+			const url = buildShareUrl(model);
+			window.location.href = url;
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : String(e);
+			setError(msg);
+		}
+	};
+
 	return (
 		<div>
 			<section className="mb-6 sm:mb-8">
@@ -56,12 +81,41 @@ export default function Home() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<Button asChild variant="outline" className="w-full gap-2">
-							<Link href="/review">
-								<Edit3 className="h-4 w-4" />
-								Open review dashboard
-							</Link>
-						</Button>
+						<Sheet open={open} onOpenChange={setOpen}>
+							<Button
+								variant="outline"
+								className="w-full gap-2"
+								onClick={() => setOpen(true)}
+							>
+								<Edit3 className="h-4 w-4" /> Import .transedit
+							</Button>
+							<SheetContent side="bottom">
+								<SheetHeader>
+									<SheetTitle>Open .transedit</SheetTitle>
+									<SheetDescription>
+										Choose a .transedit file to open the review dashboard. Your
+										edits will auto-save locally.
+									</SheetDescription>
+								</SheetHeader>
+								<div className="p-4 pt-0">
+									<Input
+										type="file"
+										accept=".transedit,application/json"
+										onChange={async (e) => {
+											const f = e.target.files?.[0] ?? null;
+											if (!f) return;
+											await handlePick(f);
+											e.currentTarget.value = "";
+										}}
+									/>
+									{error && (
+										<div className="mt-3 rounded-md border bg-destructive/10 border-destructive/30 p-3 text-sm text-destructive">
+											{error}
+										</div>
+									)}
+								</div>
+							</SheetContent>
+						</Sheet>
 					</CardContent>
 				</Card>
 			</div>
