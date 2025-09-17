@@ -19,8 +19,8 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { parseTransEditUpload } from "@/lib/helpers/transedit";
 import { upsertProject } from "@/lib/db";
+import { parseTransEditUpload } from "@/lib/helpers/transedit";
 import { ReviewsDashboard } from "./_components/reviews-dashboard";
 
 export default function Home() {
@@ -142,11 +142,6 @@ export default function Home() {
 			<div className="mt-8">
 				<ReviewsDashboard />
 			</div>
-
-			<footer className="mt-8 sm:mt-10 text-xs text-muted-foreground">
-				Dark themed UI with shadcn components, lucide icons, and local IndexedDB
-				storage (Dexie).
-			</footer>
 		</div>
 	);
 }
