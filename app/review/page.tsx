@@ -1,4 +1,5 @@
 "use client";
+
 import { useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
@@ -8,7 +9,7 @@ import { ReviewMetaBar } from "./_components/review-meta-bar";
 import { ReviewUploader } from "./_components/review-uploader";
 import { SearchBar } from "./_components/search-bar";
 import { TranslationsList } from "./_components/translations-list";
-import { useReview } from "./_hooks/useReview";
+import { useReview } from "./_hooks/use-review";
 
 export default function ReviewPage() {
 	const {
