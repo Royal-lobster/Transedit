@@ -1,71 +1,70 @@
 # TransEdit
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5.3-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC)](https://tailwindcss.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Next.js](https://img.shields.io/badge/Next.js-15.5.3-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-A modern, local-first web application for reviewing and editing translation files (locale JSONs). Built with Next.js, TransEdit provides a portable workflow for translators and developers to manage multilingual content efficiently.
+TransEdit is a local-first Next.js application for reviewing and editing translation (locale) JSON files. It's designed for translators and developers who want a portable, browser-based workflow with offline persistence and easy sharing.
 
-## ✨ Features
+## Features
 
-- **Upload & Generate**: Upload source and target language JSON files to create a `.transedit` review file
-- **Review Dashboard**: Interactive interface for editing translations with real-time autosave
-- **Undo & Snapshots**: Full undo/redo functionality and snapshot management for version control
-- **Search & Filter**: Powerful search and filtering capabilities across translations
-- **Export**: Export updated locale JSON files after review
-- **Share Reviews**: Generate shareable links via Catbox for easy collaboration
-- **Local-First**: All operations happen locally in the browser using IndexedDB—no server required
-- **Modern UI**: Beautiful interface built with shadcn/ui, Lucide icons, and Tailwind CSS
+- Upload source and target locale JSON files to generate a `.transedit` review bundle
+- Interactive review dashboard with autosave, undo/redo and snapshots
+- Search and filter translations
+- Export updated locale JSON files after review
+- Share reviews by uploading the `.transedit` file to Catbox and generating a short share link (`/review?shareId=...`)
+- IndexedDB (Dexie) for local persistence — no server or external database required for the main workflow
 
-## 🛠️ Tech Stack
+## Tech stack
 
-- **Framework**: [Next.js 15](https://nextjs.org/) with App Router
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with [shadcn/ui](https://ui.shadcn.com/) components
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Database**: [Dexie](https://dexie.org/) for IndexedDB
-- **Forms**: [React Hook Form](https://react-hook-form.com/) with [Zod](https://zod.dev/) validation
-- **State Management**: [TanStack Query](https://tanstack.com/query) for async operations
-- **Theming**: [next-themes](https://github.com/pacocoursey/next-themes) for dark/light mode
-- **Sharing**: [node-catbox](https://www.npmjs.com/package/node-catbox) for file hosting
-- **Notifications**: [Sonner](https://sonner.emilkowal.ski/) for toast notifications
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS + shadcn/ui
+- Dexie (IndexedDB)
+- React Hook Form + Zod
+- TanStack Query
+- Sonner (toasts)
 
-## 🚀 Installation
+## Quick start
 
-### Prerequisites
+Prerequisites: Node.js 18+ and pnpm
 
-- Node.js 18+ and pnpm
-
-````markdown
-# TransEdit
-
-TransEdit is a small, local-first Next.js app for reviewing and editing translation (locale) JSON files.
-
-Key features
-
- **Share Reviews**: Generate shareable links via Catbox (uploads the .transedit file to catbox.moe for temporary hosting) for easy collaboration
-- Interactive review dashboard with autosave and undo/redo.
-- Snapshot support to capture versions while reviewing.
-- Search and filter translations.
-- Export updated locale JSON files.
-- Share reviews by uploading the `.transedit` file to Catbox and generating a short share link (`/review?shareId=...`).
-
-Quick start
-
- Share reviews by uploading the `.transedit` file to Catbox (catbox.moe) and generating a short share link (`/review?shareId=...`).
+1. Install dependencies
 
 ```bash
 pnpm install
- The app uses Catbox (catbox.moe) to host shared `.transedit` files when you generate share links. Creating a share link uploads the file to Catbox for temporary hosting; shared links fetch the review file server-side and merge any existing local progress.
 ```
 
-2. Open http://localhost:3000 and use the Create page to import files or the Review page to open a `.transedit` file.
+2. Run the development server
 
-Notes
+```bash
+pnpm dev
+```
 
-- The app uses Catbox to host shared `.transedit` files when you generate share links. Shared links fetch the review file server-side and merge any existing local progress.
-- This repository is primarily for personal use and experimentation; the README is intentionally minimal.
+3. Open the app
 
-````
-2. Use the search bar to find specific translations
+Visit http://localhost:3000. Use the Create page to import source/target JSON files or the Review page to open a `.transedit` file.
+
+## Sharing behavior
+
+There are two ways to share a `.transedit` review with another reviewer:
+
+1. Direct file download
+
+	- Export and download the `.transedit` file from the app and send it to the reviewer (e.g., email, Slack, or your preferred file transfer). The reviewer can then open the Review page and import the file locally. This keeps sharing private and doesn't require any third-party hosting.
+
+2. Create a share link (Catbox)
+
+	- The app can upload the `.transedit` file to Catbox (catbox.moe) and generate a short share link (`/review?shareId=...`). This is convenient for quick, temporary public sharing. When a reviewer opens a shared link, the review file is fetched server-side and any local progress stored in the reviewer's browser is merged.
+
+Considerations:
+
+- Direct download = private, no external hosting, manual distribution.
+- Catbox share link = convenient and quick, but temporary and hosted by a third party (review Catbox's retention/privacy if that matters).
+
+## Notes
+
+- This repository is primarily for personal use and experimentation. The README focuses on the essentials.
+- If you plan to run this publicly, review the Catbox usage and consider an alternative hosting solution for persistence and privacy.
+
+## License
+
+MIT
