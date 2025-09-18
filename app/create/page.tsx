@@ -145,7 +145,7 @@ function CreatePage() {
 					{shareUrl && <ShareLinkPanel shareUrl={shareUrl} />}
 
 					<div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-						<div className="flex gap-2 w-full sm:w-auto">
+						<div className="flex flex-col md:flex-row gap-2 w-full sm:w-auto">
 							<Button
 								type="submit"
 								disabled={disabled}
