@@ -38,7 +38,7 @@ export default function RootLayout({
 			>
 				<ThemeProvider>
 					<QueryProvider>
-						<div className="min-h-screen flex flex-col">
+						<div className="min-h-[calc(100vh-100px)] flex flex-col">
 							<Navbar />
 							<main className="flex-1 container max-w-5xl py-8 px-4 mx-auto">
 								{children}
