@@ -40,7 +40,7 @@ export default function RootLayout({
 					<QueryProvider>
 						<div className="min-h-screen flex flex-col">
 							<Navbar />
-							<main className="flex-1 container py-8 px-4 mx-auto">
+							<main className="flex-1 container max-w-5xl py-8 px-4 mx-auto">
 								{children}
 							</main>
 						</div>
