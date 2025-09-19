@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 export type KeysTreeProps = {
 	keys: string[];
 	className?: string;
+	onSelect?: (key: string) => void;
 };
 
 // Build a simple dot-delimited tree structure
@@ -44,7 +45,7 @@ function buildTree(keys: string[]) {
 	return root.children;
 }
 
-export function KeysTree({ keys, className }: KeysTreeProps) {
+export function KeysTree({ keys, className, onSelect }: KeysTreeProps) {
 	const tree = useMemo(() => buildTree(keys), [keys]);
 
 	// Default scrolling behavior if no onSelect is provided
@@ -73,6 +74,8 @@ export function KeysTree({ keys, className }: KeysTreeProps) {
 		window.scrollTo({ top: y, behavior: "smooth" });
 	}
 
+	const handleSelect = onSelect ?? scrollToKey;
+
 	return (
 		<Card className="pb-0 gap-0">
 			<CardHeader className="border-b">
@@ -80,16 +83,22 @@ export function KeysTree({ keys, className }: KeysTreeProps) {
 			</CardHeader>
 			<CardContent className="!p-0">
 				<div className={cn("text-sm leading-tight", className)}>
-					<ScrollArea className="h-[300px] p-2 sm:h-[400px] lg:h-[calc(100vh-424px)]">
-						{Object.values(tree).map((n) => (
-							<TreeNode
-								key={n.path}
-								node={n}
-								depth={0}
-								onSelect={scrollToKey}
-							/>
-						))}
-					</ScrollArea>
+					{keys.length === 0 ? (
+						<div className="p-6 text-center text-muted-foreground text-xs">
+							No keys in this view.
+						</div>
+					) : (
+						<ScrollArea className="h-[300px] p-2 sm:h-[400px] lg:h-[calc(100vh-424px)]">
+							{Object.values(tree).map((n) => (
+								<TreeNode
+									key={n.path}
+									node={n}
+									depth={0}
+									onSelect={handleSelect}
+								/>
+							))}
+						</ScrollArea>
+					)}
 				</div>
 			</CardContent>
 		</Card>

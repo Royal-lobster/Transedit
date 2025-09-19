@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
@@ -146,6 +146,9 @@ function ReviewContent() {
 	} = useReviewContext();
 
 	const [tab, setTab] = useState<"todo" | "verified">("todo");
+	const scrollApiRef = useRef<{ scrollToIndex: (i: number) => void } | null>(
+		null,
+	);
 
 	if (!model) return null;
 
@@ -186,6 +189,9 @@ function ReviewContent() {
 								isVerified={isVerified}
 								setVerifiedByIndex={setVerifiedByIndex}
 								showTab={tab}
+								onRegisterScrollApi={(api) => {
+									scrollApiRef.current = api;
+								}}
 							/>
 						)}
 						<p className="mt-4 text-xs text-muted-foreground">
@@ -208,7 +214,33 @@ function ReviewContent() {
 					reviewPercent={reviewStats.percent}
 					reviewed={reviewStats.reviewed}
 				/>
-				<KeysTree keys={keys} />
+				<KeysTree
+					keys={keys.filter((_, i) =>
+						tab === "verified" ? isVerified(i) : !isVerified(i),
+					)}
+					// Use virtualization-aware navigation when available
+					onSelect={(key: string) => {
+						const idx = keys.indexOf(key);
+						if (idx < 0) return;
+						if (scrollApiRef.current) scrollApiRef.current.scrollToIndex(idx);
+						else {
+							// Fallback to default hash/offset scrolling
+							const el = document.getElementById(`tr-${idx}`);
+							if (!el) return;
+							const appHeader = document.querySelector(
+								"header.sticky",
+							) as HTMLElement | null;
+							const topBar = document.getElementById("review-topbar");
+							const stickyOffset =
+								(appHeader?.offsetHeight ?? 0) +
+								(topBar?.offsetHeight ?? 0) +
+								8;
+							const y =
+								el.getBoundingClientRect().top + window.scrollY - stickyOffset;
+							window.scrollTo({ top: y, behavior: "smooth" });
+						}
+					}}
+				/>
 			</div>
 		</div>
 	);

@@ -24,6 +24,9 @@ type TranslationsListProps = {
 	isVerified: (index: number) => boolean;
 	setVerifiedByIndex: (index: number, value: boolean) => void;
 	showTab: "todo" | "verified";
+	onRegisterScrollApi?: (api: {
+		scrollToIndex: (index: number) => void;
+	}) => void;
 };
 
 export function TranslationsList({
@@ -34,6 +37,7 @@ export function TranslationsList({
 	isVerified,
 	setVerifiedByIndex,
 	showTab,
+	onRegisterScrollApi,
 }: TranslationsListProps) {
 	const indices = (filteredIndices ?? keys.map((_, i) => i)).filter((i) =>
 		showTab === "verified" ? isVerified(i) : !isVerified(i),
@@ -65,6 +69,63 @@ export function TranslationsList({
 		// Let the virtualizer measure real DOM heights so variable-height cards don't overlap
 		measureElement: (el) => (el as HTMLElement).getBoundingClientRect().height,
 	});
+
+	// Expose a stable scrollToIndex API to parent components (e.g., KeysTree)
+	useLayoutEffect(() => {
+		if (!onRegisterScrollApi) return;
+		const scrollToIndex = (index: number) => {
+			// First, ask the virtualizer to bring the item into view
+			rowVirtualizer.scrollToIndex(index, { align: "start" });
+			// Then in the next frame, compensate for sticky headers so the card isn't hidden
+			requestAnimationFrame(() => {
+				const el = document.getElementById(`tr-${index}`);
+				if (!el) return;
+				const appHeader = document.querySelector(
+					"header.sticky",
+				) as HTMLElement | null;
+				const topBar = document.getElementById("review-topbar");
+				const stickyOffset =
+					(appHeader?.offsetHeight ?? 0) + (topBar?.offsetHeight ?? 0) + 8;
+				const top = el.getBoundingClientRect().top;
+				const delta = top - stickyOffset;
+				if (Math.abs(delta) > 1) {
+					window.scrollBy({ top: delta, left: 0, behavior: "smooth" });
+				}
+
+				// Brief highlight effect to draw attention to the card
+				// Clear any previous highlight
+				document
+					.querySelectorAll(".tr-highlight")
+					.forEach((n) =>
+						n.classList.remove(
+							"tr-highlight",
+							"ring-2",
+							"ring-primary",
+							"ring-offset-2",
+							"ring-offset-background",
+						),
+					);
+				// Apply highlight
+				el.classList.add(
+					"tr-highlight",
+					"ring-2",
+					"ring-primary",
+					"ring-offset-2",
+					"ring-offset-background",
+				);
+				window.setTimeout(() => {
+					el.classList.remove(
+						"tr-highlight",
+						"ring-2",
+						"ring-primary",
+						"ring-offset-2",
+						"ring-offset-background",
+					);
+				}, 1200);
+			});
+		};
+		onRegisterScrollApi({ scrollToIndex });
+	}, [onRegisterScrollApi, rowVirtualizer]);
 
 	// If search produced no matches at all, show that first
 	if ((filteredIndices?.length ?? 0) === 0) {
