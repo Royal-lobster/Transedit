@@ -1,8 +1,9 @@
 "use client";
 
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { Check, CheckCircle, Edit, Globe } from "lucide-react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Control } from "react-hook-form";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -38,6 +39,33 @@ export function TranslationsList({
 		showTab === "verified" ? isVerified(i) : !isVerified(i),
 	);
 
+	// Virtualization hooks must be declared unconditionally
+	const containerRef = useRef<HTMLDivElement | null>(null);
+	const [scrollMargin, setScrollMargin] = useState(0);
+
+	// Measure the list container's offset from the top of the document for window virtualization
+	useLayoutEffect(() => {
+		const compute = () => {
+			const el = containerRef.current;
+			if (!el) return;
+			const top = el.getBoundingClientRect().top + window.scrollY;
+			setScrollMargin(top);
+		};
+		compute();
+		window.addEventListener("resize", compute);
+		return () => window.removeEventListener("resize", compute);
+	}, []);
+	const rowCount = indices.length;
+	const estimateSize = useMemo(() => 220, []); // avg card height
+	const rowVirtualizer = useWindowVirtualizer({
+		count: rowCount,
+		estimateSize: () => estimateSize,
+		overscan: 8,
+		scrollMargin,
+		// Let the virtualizer measure real DOM heights so variable-height cards don't overlap
+		measureElement: (el) => (el as HTMLElement).getBoundingClientRect().height,
+	});
+
 	// If search produced no matches at all, show that first
 	if ((filteredIndices?.length ?? 0) === 0) {
 		return <p className="text-sm text-muted-foreground">No matches.</p>;
@@ -49,7 +77,7 @@ export function TranslationsList({
 			<div className="flex flex-col items-center justify-center gap-2 rounded-md border p-6 text-center">
 				{showTab === "todo" ? (
 					<>
-						<CheckCircle className="h-6 w-6 text-green-600" />
+						<CheckCircle className="h-6 w-6 text-primary" />
 						<p className="text-sm font-medium">All reviewed</p>
 						<p className="text-xs text-muted-foreground">
 							Everything here is verified. Switch to the Verified tab to see
@@ -70,22 +98,45 @@ export function TranslationsList({
 	}
 
 	return (
-		<div className="space-y-4">
-			{indices.map((i) => {
-				const key = keys[i];
-				const en = enDict[key] ?? "";
-				return (
-					<TranslationCard
-						key={key}
-						translationKey={key}
-						enText={en}
-						index={i}
-						control={control}
-						verified={isVerified(i)}
-						onToggleVerified={() => setVerifiedByIndex(i, !isVerified(i))}
-					/>
-				);
-			})}
+		<div ref={containerRef}>
+			<div
+				style={{
+					height: rowVirtualizer.getTotalSize(),
+					width: "100%",
+					position: "relative",
+				}}
+			>
+				{rowVirtualizer.getVirtualItems().map((virtualRow) => {
+					const idx = indices[virtualRow.index];
+					const key = keys[idx];
+					const en = enDict[key] ?? "";
+					return (
+						<div
+							key={virtualRow.key}
+							data-index={virtualRow.index}
+							ref={rowVirtualizer.measureElement}
+							className="absolute left-0 top-0 w-full px-0 p-2"
+							style={{
+								transform: `translateY(${
+									virtualRow.start - (rowVirtualizer.options.scrollMargin ?? 0)
+								}px)`,
+								willChange: "transform",
+							}}
+						>
+							<TranslationCard
+								translationKey={key}
+								enText={en}
+								index={idx}
+								control={control}
+								verified={isVerified(idx)}
+								onToggleVerified={() =>
+									setVerifiedByIndex(idx, !isVerified(idx))
+								}
+							/>
+						</div>
+					);
+				})}
+			</div>
 		</div>
 	);
 }
@@ -137,10 +188,6 @@ function TranslationCard({
 								</>
 							);
 						})()}
-						<Badge variant="secondary" className="ml-1 flex-shrink-0 text-xs">
-							<Globe className="w-3 h-3 mr-1" />
-							Key
-						</Badge>
 					</div>
 				</CardTitle>
 			</CardHeader>
