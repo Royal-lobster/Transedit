@@ -1,9 +1,10 @@
 "use client";
 
-import { Check, Edit, Globe } from "lucide-react";
+import { Check, CheckCircle, Edit, Globe } from "lucide-react";
 import type { Control } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	FormControl,
 	FormField,
@@ -12,7 +13,6 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Toggle } from "@/components/ui/toggle";
 import type { ReviewFormValues } from "../_hooks/use-review";
 
 type TranslationsListProps = {
@@ -34,28 +34,58 @@ export function TranslationsList({
 	setVerifiedByIndex,
 	showTab,
 }: TranslationsListProps) {
-	const showAll = !filteredIndices;
+	const indices = (filteredIndices ?? keys.map((_, i) => i)).filter((i) =>
+		showTab === "verified" ? isVerified(i) : !isVerified(i),
+	);
+
+	// If search produced no matches at all, show that first
+	if ((filteredIndices?.length ?? 0) === 0) {
+		return <p className="text-sm text-muted-foreground">No matches.</p>;
+	}
+
+	if (indices.length === 0) {
+		// Nice empty states per tab
+		return (
+			<div className="flex flex-col items-center justify-center gap-2 rounded-md border p-6 text-center">
+				{showTab === "todo" ? (
+					<>
+						<CheckCircle className="h-6 w-6 text-green-600" />
+						<p className="text-sm font-medium">All reviewed</p>
+						<p className="text-xs text-muted-foreground">
+							Everything here is verified. Switch to the Verified tab to see
+							them.
+						</p>
+					</>
+				) : (
+					<>
+						<Check className="h-6 w-6 text-muted-foreground" />
+						<p className="text-sm font-medium">No verified items yet</p>
+						<p className="text-xs text-muted-foreground">
+							Mark translations as Verified to collect them here.
+						</p>
+					</>
+				)}
+			</div>
+		);
+	}
+
 	return (
 		<div className="space-y-4">
-			{(showAll ? keys.map((_, i) => i) : filteredIndices)
-				.filter((i) =>
-					showTab === "verified" ? isVerified(i) : !isVerified(i),
-				)
-				.map((i) => {
-					const key = keys[i];
-					const en = enDict[key] ?? "";
-					return (
-						<TranslationCard
-							key={key}
-							translationKey={key}
-							enText={en}
-							index={i}
-							control={control}
-							verified={isVerified(i)}
-							onToggleVerified={() => setVerifiedByIndex(i, !isVerified(i))}
-						/>
-					);
-				})}
+			{indices.map((i) => {
+				const key = keys[i];
+				const en = enDict[key] ?? "";
+				return (
+					<TranslationCard
+						key={key}
+						translationKey={key}
+						enText={en}
+						index={i}
+						control={control}
+						verified={isVerified(i)}
+						onToggleVerified={() => setVerifiedByIndex(i, !isVerified(i))}
+					/>
+				);
+			})}
 		</div>
 	);
 }
@@ -87,18 +117,27 @@ function TranslationCard({
 					<span className="break-words max-w-[60vw] pr-2">
 						{translationKey}
 					</span>
-					<div className="flex items-center gap-2">
-						<Toggle
-							pressed={verified}
-							onPressedChange={onToggleVerified}
-							aria-label={verified ? "Unverify" : "Mark as verified"}
-							title={verified ? "Unverify" : "Mark as verified"}
-							className="text-xs"
-						>
-							<Check className="w-3 h-3" />
-							<span className="hidden sm:inline">Verified</span>
-						</Toggle>
-						<Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
+					<div className="flex items-center gap-3">
+						{(() => {
+							const checkboxId = `verified-${index}`;
+							return (
+								<>
+									<Checkbox
+										id={checkboxId}
+										checked={verified}
+										onCheckedChange={() => onToggleVerified()}
+										aria-label={verified ? "Unverify" : "Mark as verified"}
+									/>
+									<label
+										htmlFor={checkboxId}
+										className="text-xs text-muted-foreground cursor-pointer select-none"
+									>
+										Verified
+									</label>
+								</>
+							);
+						})()}
+						<Badge variant="secondary" className="ml-1 flex-shrink-0 text-xs">
 							<Globe className="w-3 h-3 mr-1" />
 							Key
 						</Badge>

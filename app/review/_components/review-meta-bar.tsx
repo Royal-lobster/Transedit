@@ -50,7 +50,7 @@ export function ReviewMetaBar({
 					<div className="w-full">
 						<Progress value={percent} />
 						<p className="mt-1 text-right text-xs text-muted-foreground">
-							{translated}/{total} • {percent}%
+							Translated {translated}/{total} • {percent}%
 						</p>
 						{typeof reviewPercent === "number" &&
 						typeof reviewed === "number" ? (
