@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, Globe } from "lucide-react";
+import { Check, Edit, Globe } from "lucide-react";
 import type { Control } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { Toggle } from "@/components/ui/toggle";
 import type { ReviewFormValues } from "../_hooks/use-review";
 
 type TranslationsListProps = {
@@ -19,6 +20,9 @@ type TranslationsListProps = {
 	filteredIndices: number[] | null;
 	control: Control<ReviewFormValues>;
 	enDict: Record<string, string>;
+	isVerified: (index: number) => boolean;
+	setVerifiedByIndex: (index: number, value: boolean) => void;
+	showTab: "todo" | "verified";
 };
 
 export function TranslationsList({
@@ -26,23 +30,32 @@ export function TranslationsList({
 	filteredIndices,
 	control,
 	enDict,
+	isVerified,
+	setVerifiedByIndex,
+	showTab,
 }: TranslationsListProps) {
 	const showAll = !filteredIndices;
 	return (
 		<div className="space-y-4">
-			{(showAll ? keys.map((_, i) => i) : filteredIndices).map((i) => {
-				const key = keys[i];
-				const en = enDict[key] ?? "";
-				return (
-					<TranslationCard
-						key={key}
-						translationKey={key}
-						enText={en}
-						index={i}
-						control={control}
-					/>
-				);
-			})}
+			{(showAll ? keys.map((_, i) => i) : filteredIndices)
+				.filter((i) =>
+					showTab === "verified" ? isVerified(i) : !isVerified(i),
+				)
+				.map((i) => {
+					const key = keys[i];
+					const en = enDict[key] ?? "";
+					return (
+						<TranslationCard
+							key={key}
+							translationKey={key}
+							enText={en}
+							index={i}
+							control={control}
+							verified={isVerified(i)}
+							onToggleVerified={() => setVerifiedByIndex(i, !isVerified(i))}
+						/>
+					);
+				})}
 		</div>
 	);
 }
@@ -52,6 +65,8 @@ type TranslationCardProps = {
 	enText: string;
 	index: number;
 	control: Control<ReviewFormValues>;
+	verified: boolean;
+	onToggleVerified: () => void;
 };
 
 function TranslationCard({
@@ -59,6 +74,8 @@ function TranslationCard({
 	enText,
 	index,
 	control,
+	verified,
+	onToggleVerified,
 }: TranslationCardProps) {
 	return (
 		<Card
@@ -70,10 +87,22 @@ function TranslationCard({
 					<span className="break-words max-w-[60vw] pr-2">
 						{translationKey}
 					</span>
-					<Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
-						<Globe className="w-3 h-3 mr-1" />
-						Key
-					</Badge>
+					<div className="flex items-center gap-2">
+						<Toggle
+							pressed={verified}
+							onPressedChange={onToggleVerified}
+							aria-label={verified ? "Unverify" : "Mark as verified"}
+							title={verified ? "Unverify" : "Mark as verified"}
+							className="text-xs"
+						>
+							<Check className="w-3 h-3" />
+							<span className="hidden sm:inline">Verified</span>
+						</Toggle>
+						<Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
+							<Globe className="w-3 h-3 mr-1" />
+							Key
+						</Badge>
+					</div>
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">

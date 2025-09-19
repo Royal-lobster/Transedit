@@ -11,6 +11,8 @@ export function ReviewMetaBar({
 	percent,
 	translated,
 	total,
+	reviewPercent,
+	reviewed,
 }: {
 	sourceLang: string;
 	targetLang: string;
@@ -19,6 +21,8 @@ export function ReviewMetaBar({
 	percent: number;
 	translated: number;
 	total: number;
+	reviewPercent?: number;
+	reviewed?: number;
 }) {
 	const displayTitle =
 		title && title.trim() !== "" ? title : `${sourceLang} → ${targetLang}`;
@@ -48,6 +52,15 @@ export function ReviewMetaBar({
 						<p className="mt-1 text-right text-xs text-muted-foreground">
 							{translated}/{total} • {percent}%
 						</p>
+						{typeof reviewPercent === "number" &&
+						typeof reviewed === "number" ? (
+							<div className="mt-3">
+								<Progress value={reviewPercent} />
+								<p className="mt-1 text-right text-xs text-muted-foreground">
+									Reviewed {reviewed}/{total} • {reviewPercent}%
+								</p>
+							</div>
+						) : null}
 					</div>
 				</div>
 			</CardContent>

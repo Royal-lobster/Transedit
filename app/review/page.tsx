@@ -1,9 +1,11 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ActionsBar } from "./_components/actions-bar";
 import { KeysTree } from "./_components/keys-tree";
 import { ReviewMetaBar } from "./_components/review-meta-bar";
@@ -17,6 +19,10 @@ interface ReviewContextType {
 	model: ReturnType<typeof useReview>["model"];
 	keys: ReturnType<typeof useReview>["keys"];
 	filteredIndices: ReturnType<typeof useReview>["filteredIndices"];
+	reviewStats: ReturnType<typeof useReview>["reviewStats"];
+	verified: ReturnType<typeof useReview>["verified"];
+	isVerified: ReturnType<typeof useReview>["isVerified"];
+	setVerifiedByIndex: ReturnType<typeof useReview>["setVerifiedByIndex"];
 	onDownloadLocale: ReturnType<typeof useReview>["onDownloadLocale"];
 	onDownloadTransedit: ReturnType<typeof useReview>["onDownloadTransedit"];
 	onCopyShareLink: ReturnType<typeof useReview>["onCopyShareLink"];
@@ -34,19 +40,13 @@ function useReviewContext() {
 	return context;
 }
 
-interface ReviewPageProps {
-	searchParams: {
-		id?: string;
-		shareId?: string;
-	};
-}
-
-export default function ReviewPage({
-	searchParams: { id, shareId },
-}: ReviewPageProps) {
+export default function ReviewPage() {
 	const [mounted, setMounted] = useState(false);
 	useEffect(() => setMounted(true), []);
 
+	const searchParams = useSearchParams();
+	const id = searchParams.get("id") ?? undefined;
+	const shareId = searchParams.get("shareId") ?? undefined;
 	const hasParams = !!id || !!shareId;
 	const reviewData = useReview({ id });
 
@@ -134,19 +134,43 @@ function NoReviewState({
 }
 
 function ReviewContent() {
-	const { keys, filteredIndices, form, model, liveStats } = useReviewContext();
+	const {
+		keys,
+		filteredIndices,
+		form,
+		model,
+		liveStats,
+		reviewStats,
+		isVerified,
+		setVerifiedByIndex,
+	} = useReviewContext();
+
+	const [tab, setTab] = useState<"todo" | "verified">("todo");
 
 	if (!model) return null;
 
 	return (
 		<div className="grid gap-6 grid-cols-1 lg:grid-cols-[1fr_280px] xl:grid-cols-[1fr_320px]">
 			<Card className="overflow-visible bg-transparent border-none shadow-none">
-				<CardHeader className="pb-2">
+				<CardHeader className="pb-2 !px-0">
 					<div className="flex items-center justify-between">
 						<CardTitle className="text-base">Translations</CardTitle>
 						<Badge variant="outline" className="text-xs">
 							Auto saving
 						</Badge>
+					</div>
+					<div className="mt-3">
+						<ToggleGroup
+							type="single"
+							value={tab}
+							onValueChange={(v) => v && setTab(v as "todo" | "verified")}
+							className=""
+							variant="outline"
+							aria-label="Review filter"
+						>
+							<ToggleGroupItem value="todo">To review</ToggleGroupItem>
+							<ToggleGroupItem value="verified">Verified</ToggleGroupItem>
+						</ToggleGroup>
 					</div>
 				</CardHeader>
 				<CardContent className="p-0">
@@ -159,6 +183,9 @@ function ReviewContent() {
 								filteredIndices={filteredIndices}
 								control={form.control}
 								enDict={model.en}
+								isVerified={isVerified}
+								setVerifiedByIndex={setVerifiedByIndex}
+								showTab={tab}
 							/>
 						)}
 						<p className="mt-4 text-xs text-muted-foreground">
@@ -178,6 +205,8 @@ function ReviewContent() {
 					percent={liveStats.percent}
 					translated={liveStats.translated}
 					total={liveStats.total}
+					reviewPercent={reviewStats.percent}
+					reviewed={reviewStats.reviewed}
 				/>
 				<KeysTree keys={keys} />
 			</div>

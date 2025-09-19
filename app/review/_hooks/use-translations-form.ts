@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { upsertProject } from "@/lib/db";
+import { loadProject, upsertProject } from "@/lib/db";
 import {
 	stats as computeStats,
 	debounce,
@@ -31,6 +31,13 @@ export function useTranslationsForm(model: TransEditFile | null) {
 		[model],
 	);
 
+	// Verified checklist state (local-only)
+	const [verified, setVerified] = useState<Record<string, boolean>>({});
+	const verifiedRef = useRef<Record<string, boolean>>({});
+	useEffect(() => {
+		verifiedRef.current = verified;
+	}, [verified]);
+
 	const arrayToMap = useCallback(
 		(arr: string[]): FlatMap => {
 			const m: FlatMap = {};
@@ -46,6 +53,13 @@ export function useTranslationsForm(model: TransEditFile | null) {
 		const keysSorted = Object.keys(model.en).sort();
 		const initialTranslations = keysSorted.map((k) => model.target[k] ?? "");
 		form.reset({ translations: initialTranslations, search: "", note: "" });
+
+		// Load verified map (if exists)
+		loadProject(model.id)
+			.then((row) => {
+				setVerified(row?.verified ?? {});
+			})
+			.catch(() => setVerified({}));
 	}, [model, form]);
 
 	// Derived search/filter
@@ -83,12 +97,14 @@ export function useTranslationsForm(model: TransEditFile | null) {
 				targetMap: FlatMap,
 				meta: TransEditFile["meta"],
 				en: FlatMap,
+				verifiedMap: Record<string, boolean>,
 			) => {
 				upsertMutation.mutate({
 					id,
 					meta,
 					en,
 					target: targetMap,
+					verified: verifiedMap,
 					updatedAt: new Date().toISOString(),
 				});
 			},
@@ -102,11 +118,39 @@ export function useTranslationsForm(model: TransEditFile | null) {
 			if (info.name?.startsWith("translations")) {
 				const arr = (value.translations ?? []) as string[];
 				const map = arrayToMap(arr);
-				debouncedSaveRef.current(model.id, map, model.meta, model.en);
+				// If a specific index changed, auto-unverify it (content changed)
+				const m = info.name.match(/^translations\.(\d+)$/);
+				if (m) {
+					const idx = Number(m[1]);
+					const key = keys[idx];
+					if (key) {
+						setVerified((prev) => {
+							if (!prev[key]) return prev;
+							const next = { ...prev } as Record<string, boolean>;
+							delete next[key];
+							// Persist immediately with updated verified map
+							debouncedSaveRef.current(
+								model.id,
+								map,
+								model.meta,
+								model.en,
+								next,
+							);
+							return next;
+						});
+					}
+				}
+				debouncedSaveRef.current(
+					model.id,
+					map,
+					model.meta,
+					model.en,
+					verifiedRef.current,
+				);
 			}
 		});
 		return () => subscription.unsubscribe();
-	}, [form, model, arrayToMap]);
+	}, [form, model, arrayToMap, keys]);
 
 	// Live stats
 	// Use the watched `translationsValue` so stats update when the form is
@@ -120,6 +164,18 @@ export function useTranslationsForm(model: TransEditFile | null) {
 		const temp: TransEditFile = { ...model, target: map };
 		return computeStats(temp);
 	}, [translationsValue, model, arrayToMap]);
+
+	// Review/verified stats
+	const reviewStats = useMemo(() => {
+		const total = keys.length;
+		let reviewed = 0;
+		for (const k of keys) if (verified[k]) reviewed++;
+		return {
+			total,
+			reviewed,
+			percent: total === 0 ? 100 : Math.round((reviewed / total) * 100),
+		};
+	}, [keys, verified]);
 
 	// Downloads
 	const onDownloadLocale = useCallback(() => {
@@ -140,11 +196,40 @@ export function useTranslationsForm(model: TransEditFile | null) {
 		downloadFile(filename, json, "application/json");
 	}, [form, model, arrayToMap]);
 
+	// Toggle verification for an index
+	const isVerified = useCallback(
+		(index: number) => {
+			const key = keys[index];
+			return !!verified[key];
+		},
+		[keys, verified],
+	);
+
+	const setVerifiedByIndex = useCallback(
+		(index: number, value: boolean) => {
+			const key = keys[index];
+			setVerified((prev) => {
+				const next = { ...prev, [key]: value } as Record<string, boolean>;
+				if (model) {
+					const arr = form.getValues("translations") ?? [];
+					const map = arrayToMap(arr);
+					debouncedSaveRef.current(model.id, map, model.meta, model.en, next);
+				}
+				return next;
+			});
+		},
+		[form, arrayToMap, keys, model],
+	);
+
 	return {
 		form,
 		keys,
 		filteredIndices,
 		liveStats,
+		reviewStats,
+		verified,
+		isVerified,
+		setVerifiedByIndex,
 		onDownloadLocale,
 		onDownloadTransedit,
 	} as const;

@@ -6,6 +6,8 @@ export interface ProjectRow {
 	meta: TransEditFile["meta"];
 	en: FlatMap;
 	target: FlatMap;
+	// Map of key -> verified flag (local-only state, not part of shared file)
+	verified?: Record<string, boolean>;
 	updatedAt: string; // ISO
 }
 
