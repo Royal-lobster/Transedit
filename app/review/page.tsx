@@ -1,11 +1,10 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { ActionsBar } from "./_components/actions-bar";
 import { KeysTree } from "./_components/keys-tree";
 import { ReviewMetaBar } from "./_components/review-meta-bar";
@@ -40,13 +39,17 @@ function useReviewContext() {
 	return context;
 }
 
-export default function ReviewPage() {
+interface ReviewPageProps{
+	searchParams: {
+		id?: string,
+		shareId?: string
+	}
+}
+
+export default function ReviewPage({searchParams: {id, shareId}}: ReviewPageProps) {
 	const [mounted, setMounted] = useState(false);
 	useEffect(() => setMounted(true), []);
 
-	const searchParams = useSearchParams();
-	const id = searchParams.get("id") ?? undefined;
-	const shareId = searchParams.get("shareId") ?? undefined;
 	const hasParams = !!id || !!shareId;
 	const reviewData = useReview({ id });
 
