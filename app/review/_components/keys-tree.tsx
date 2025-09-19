@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronRight, Dot } from "lucide-react";
+import { ChevronDown, ChevronRight, Dot, FolderOpen } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -84,11 +84,17 @@ export function KeysTree({ keys, className, onSelect }: KeysTreeProps) {
 			<CardContent className="!p-0">
 				<div className={cn("text-sm leading-tight", className)}>
 					{keys.length === 0 ? (
-						<div className="p-6 text-center text-muted-foreground text-xs">
-							No keys in this view.
+						<div className="flex items-center justify-center h-[300px] sm:h-[400px] lg:h-[calc(100vh-470px)] p-4 text-center">
+							<div>
+								<FolderOpen className="mx-auto mb-3 h-7 w-7 text-muted-foreground" />
+								<p className="text-sm font-medium">No keys in this view</p>
+								<p className="text-xs text-muted-foreground">
+									Try switching tabs or clearing filters.
+								</p>
+							</div>
 						</div>
 					) : (
-						<ScrollArea className="h-[300px] p-2 sm:h-[400px] lg:h-[calc(100vh-424px)]">
+						<ScrollArea className="h-[300px] p-2 sm:h-[400px] lg:h-[calc(100vh-470px)]">
 							{Object.values(tree).map((n) => (
 								<TreeNode
 									key={n.path}

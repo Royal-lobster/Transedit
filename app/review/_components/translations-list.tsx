@@ -1,7 +1,7 @@
 "use client";
 
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { Check, CheckCircle, Edit, Globe } from "lucide-react";
+import { ClipboardCheck, Edit, Globe, Inbox } from "lucide-react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Control } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,33 +127,45 @@ export function TranslationsList({
 		onRegisterScrollApi({ scrollToIndex });
 	}, [onRegisterScrollApi, rowVirtualizer]);
 
-	// If search produced no matches at all, show that first
+	// If search produced no matches at all, show that first (defensive; also handled in page.tsx)
 	if ((filteredIndices?.length ?? 0) === 0) {
-		return <p className="text-sm text-muted-foreground">No matches.</p>;
+		return (
+			<div className="flex items-center justify-center rounded-md border bg-muted/5 min-h-[40vh] p-8 text-center">
+				<div>
+					<Inbox className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+					<p className="text-sm font-medium">No matches</p>
+					<p className="text-xs text-muted-foreground">
+						Try a different search term.
+					</p>
+				</div>
+			</div>
+		);
 	}
 
 	if (indices.length === 0) {
-		// Nice empty states per tab
+		// Nice, filling empty states per tab
 		return (
-			<div className="flex flex-col items-center justify-center gap-2 rounded-md border p-6 text-center">
-				{showTab === "todo" ? (
-					<>
-						<CheckCircle className="h-6 w-6 text-primary" />
-						<p className="text-sm font-medium">All reviewed</p>
-						<p className="text-xs text-muted-foreground">
-							Everything here is verified. Switch to the Verified tab to see
-							them.
-						</p>
-					</>
-				) : (
-					<>
-						<Check className="h-6 w-6 text-muted-foreground" />
-						<p className="text-sm font-medium">No verified items yet</p>
-						<p className="text-xs text-muted-foreground">
-							Mark translations as Verified to collect them here.
-						</p>
-					</>
-				)}
+			<div className="flex items-center justify-center rounded-md border bg-muted/5 min-h-[50vh] p-8 text-center">
+				<div>
+					{showTab === "todo" ? (
+						<>
+							<ClipboardCheck className="mx-auto mb-3 h-8 w-8 text-primary" />
+							<p className="text-sm font-medium">All reviewed</p>
+							<p className="text-xs text-muted-foreground">
+								Everything here is verified. Switch to the Verified tab to
+								browse them.
+							</p>
+						</>
+					) : (
+						<>
+							<Inbox className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+							<p className="text-sm font-medium">No verified items yet</p>
+							<p className="text-xs text-muted-foreground">
+								Mark translations as Verified to collect them here.
+							</p>
+						</>
+					)}
+				</div>
 			</div>
 		);
 	}
