@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState, use } from "react";
 import { ActionsBar } from "./_components/actions-bar";
 import { KeysTree } from "./_components/keys-tree";
 import { ReviewMetaBar } from "./_components/review-meta-bar";
@@ -40,20 +40,27 @@ function useReviewContext() {
 }
 
 interface ReviewPageProps{
-	searchParams: {
+	searchParams: Promise<{
 		id?: string,
 		shareId?: string
-	}
+	}>
 }
 
-export default function ReviewPage({searchParams: {id, shareId}}: ReviewPageProps) {
-	const [mounted, setMounted] = useState(false);
-	useEffect(() => setMounted(true), []);
+export default function ReviewPage(props: ReviewPageProps) {
+    const searchParams = use(props.searchParams);
 
-	const hasParams = !!id || !!shareId;
-	const reviewData = useReview({ id });
+    const {
+        id,
+        shareId
+    } = searchParams;
 
-	return (
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
+    const hasParams = !!id || !!shareId;
+    const reviewData = useReview({ id });
+
+    return (
 		<div className="w-full">
 			<Form {...reviewData.form}>
 				<ReviewContext.Provider value={reviewData}>
