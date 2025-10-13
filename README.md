@@ -5,6 +5,8 @@
 
 TransEdit is a local-first Next.js application for reviewing and editing translation (locale) JSON files. It's designed for translators and developers who want a portable, browser-based workflow with offline persistence and easy sharing.
 
+![App Screenshot](https://raw.githubusercontent.com/Royal-lobster/transedit/main/screenshot.jpg)
+
 ## ✨ Features
 
 - Upload source and target locale JSON files to generate a `.transedit` review bundle
